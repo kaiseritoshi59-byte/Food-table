@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Food Table</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:dark;--bg:#090c11;--pn:rgba(255,255,255,.05);--bd:rgba(255,255,255,.1);--tx:#eef1f6;--mu:#96a0b0;--ac:#7cf2c9;--sh:0 18px 50px rgba(0,0,0,.5);box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(1200px 600px at 10% -10%,#16314a55,transparent),radial-gradient(900px 500px at 100% 0,#3b1d4a40,transparent),var(--bg);color:var(--tx);font:13px/1.35 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;min-height:100%}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:30}
+button,select{font:inherit;color:inherit}
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:rgba(9,12,17,.82);backdrop-filter:blur(14px);border-bottom:1px solid var(--bd);padding:10px 14px 8px}
+.top{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.brand h1{margin:0;font-size:15px;letter-spacing:.28em;font-weight:700}
+.brand p{margin:0;color:var(--mu);font-size:11px}
+.search{flex:1;min-width:150px;position:relative}
+.search input{width:100%;background:var(--pn);border:1px solid var(--bd);border-radius:8px;padding:9px 12px;padding-inline-end:34px;color:var(--tx);font-size:14px;outline:none}
+.search input:focus{border-color:var(--ac)}
+.search kbd{position:absolute;inset-inline-end:9px;top:8px;color:var(--mu);border:1px solid var(--bd);border-radius:4px;padding:0 5px;font-size:11px}
+.btn{background:var(--pn);border:1px solid var(--bd);border-radius:8px;padding:8px 11px;cursor:pointer;white-space:nowrap;transition:.2s}
+.btn:hover{border-color:var(--ac)}.btn.on{background:var(--ac);color:#04130d;border-color:var(--ac);font-weight:600}
+.row{display:flex;gap:6px;overflow-x:auto;padding:7px 0 1px;scrollbar-width:none;align-items:center}
+.row::-webkit-scrollbar{display:none}
+.chip{flex:none;background:transparent;border:1px solid var(--bd);border-radius:6px;padding:4px 9px;font-size:11.5px;color:var(--mu);cursor:pointer;transition:.2s}
+.chip:hover{color:var(--tx)}.chip.on{color:#04130d;background:var(--ac);border-color:var(--ac);font-weight:600}
+.lbl{flex:none;color:var(--mu);font-size:10px;letter-spacing:.14em;text-transform:uppercase;margin-right:2px}
+main{padding:12px 14px 120px;max-width:1500px;margin:auto}
+.stat{display:flex;justify-content:space-between;color:var(--mu);font-size:12px;margin-bottom:8px;align-items:center}
+#grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:5px}
+@media(min-width:700px){#grid{grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:6px}}
+.t{position:relative;overflow:hidden;height:92px;border-radius:5px;padding:5px 6px;text-align:start;cursor:pointer;display:flex;flex-direction:column;border:1px solid hsl(var(--h) 40% 55%/.28);background:linear-gradient(160deg,hsl(var(--h) 45% 50%/.13),hsl(var(--h) 45% 50%/.03));transition:border-color .2s,box-shadow .2s;-webkit-tap-highlight-color:transparent}
+.t:hover{border-color:hsl(var(--h) 70% 65%);box-shadow:0 0 0 1px hsl(var(--h) 70% 65%/.5),0 6px 20px #0008;z-index:2}
+.t.sel{border-color:var(--ac);box-shadow:0 0 0 2px var(--ac)}
+.t .n{font-size:9px;color:var(--mu);position:relative}
+.t .f{position:absolute;left:0;right:0;bottom:0;background:hsl(var(--vh) 75% 55%/.38);transition:height .6s cubic-bezier(.2,.8,.2,1);pointer-events:none}
+.t b{font-size:24px;line-height:1;margin:1px 0 2px;position:relative;font-weight:400}
+.t em{font-style:normal;font-size:9.5px;letter-spacing:.04em;text-transform:uppercase;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;position:relative}
+.t span,.t small{font-size:10px;color:#cfd6e2;position:relative;white-space:nowrap}
+.t small{color:var(--mu)}
+.empty{text-align:center;padding:60px 10px;color:var(--mu)}.empty big{display:block;font-size:44px}
+#tip{position:fixed;pointer-events:none;z-index:50;background:rgba(14,18,26,.95);border:1px solid var(--bd);border-radius:8px;padding:8px 10px;font-size:11.5px;opacity:0;transition:opacity .15s;backdrop-filter:blur(10px)}
+@media(hover:none){#tip{display:none}}
+.ov{position:fixed;inset:0;z-index:40;background:rgba(3,5,8,.65);backdrop-filter:blur(6px);display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s}
+.ov.on{opacity:1;pointer-events:auto}
+.sheet{width:min(560px,100%);max-height:88vh;overflow:auto;background:rgba(18,23,32,.96);border:1px solid var(--bd);border-radius:14px 14px 0 0;padding:16px 16px calc(18px + env(safe-area-inset-bottom,0px));transform:translateY(30px) scale(.98);transition:transform .35s cubic-bezier(.2,.8,.2,1)}
+.ov.on .sheet{transform:none}
+@media(min-width:700px){.ov{align-items:center}.sheet{border-radius:14px}}
+.sheet.wide{width:min(760px,100%)}
+.hd{display:flex;gap:12px;align-items:center;margin-bottom:10px}
+.hd .em{font-size:44px;line-height:1}.hd h2{margin:0;font-size:18px}
+.tag{display:inline-block;font-size:10.5px;border:1px solid var(--bd);border-radius:5px;padding:1px 6px;color:var(--mu);margin:3px 0 0;margin-inline-end:4px}
+.x{margin-inline-start:auto;align-self:flex-start;background:none;border:0;color:var(--mu);font-size:22px;cursor:pointer}
+.seg{display:flex;gap:4px;margin:8px 0 12px}.seg .chip{flex:1;text-align:center}.seg .chip[disabled]{opacity:.3;cursor:not-allowed}
+.mid{display:flex;gap:14px;align-items:center;margin-bottom:12px}
+.big{font-size:30px;font-weight:700;line-height:1}.big small{font-size:12px;color:var(--mu);font-weight:400}
+.leg{font-size:11px;color:var(--mu)}.leg i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-inline-end:4px}
+.bar{display:grid;grid-template-columns:70px 1fr 74px;gap:8px;align-items:center;margin:6px 0;font-size:12px}
+.bar .tr{height:7px;background:rgba(255,255,255,.07);border-radius:4px;overflow:hidden}
+.bar .tr i{display:block;height:100%;width:0;border-radius:4px;transition:width .9s cubic-bezier(.2,.8,.2,1)}
+.bar .v{text-align:end;font-variant-numeric:tabular-nums}.bar .v small{color:var(--mu)}
+.acts{display:flex;gap:8px;margin-top:12px}.acts .btn{flex:1}
+.note{color:var(--mu);font-size:10.5px;margin-top:12px}
+.cm{margin:12px 0 4px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--mu)}
+.cb{display:grid;grid-template-columns:96px 1fr 58px;gap:8px;align-items:center;margin:4px 0;font-size:12px}
+.cb span:first-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#tray{position:fixed;left:0;right:0;bottom:0;z-index:25;display:flex;gap:8px;align-items:center;padding:10px 14px calc(10px + env(safe-area-inset-bottom,0px));background:rgba(14,18,26,.92);backdrop-filter:blur(14px);border-top:1px solid var(--bd);transform:translateY(110%);transition:transform .3s}
+#tray.on{transform:none}#tray .ch{display:flex;gap:6px;flex:1;overflow-x:auto}
+.pill{flex:none;border:1px solid var(--bd);border-radius:20px;padding:3px 9px;cursor:pointer;background:var(--pn)}
+select{background:#121820;border:1px solid var(--bd);border-radius:8px;padding:9px;width:100%}
+.mr{display:grid;grid-template-columns:30px 1fr 74px 28px;gap:8px;align-items:center;margin:6px 0}
+.mr input{width:100%;background:var(--pn);border:1px solid var(--bd);border-radius:6px;padding:6px;color:var(--tx);font-size:14px}
+.plate{display:flex;flex-wrap:wrap;gap:4px;align-items:center;justify-content:center;min-height:70px;margin:12px 0;border-radius:50%/20px;background:radial-gradient(closest-side,#ffffff0d,transparent)}
+.plate span{transition:font-size .4s;animation:pop .4s}
+@keyframes pop{from{transform:scale(0)}to{transform:none}}
+.seg2{display:flex;height:8px;border-radius:4px;overflow:hidden;margin:6px 0 10px}.seg2 i{transition:width .5s}
+.tot{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;text-align:center}
+.tot div{background:var(--pn);border:1px solid var(--bd);border-radius:8px;padding:7px 2px}.tot b{display:block;font-size:16px}.tot small{color:var(--mu);font-size:10px}
+[hidden]{display:none!important}
+:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+header{background:linear-gradient(180deg,rgba(16,21,30,.92),rgba(9,12,17,.84));box-shadow:0 1px 0 rgba(255,255,255,.05),0 14px 34px rgba(0,0,0,.3)}
+.brand h1{background:linear-gradient(90deg,#fff 30%,var(--ac));-webkit-background-clip:text;background-clip:text;color:transparent}
+.btn,.chip{min-height:34px;display:inline-flex;align-items:center;justify-content:center}
+.btn:active,.chip:active,.t:active{transform:scale(.97)}
+.t{box-shadow:inset 0 1px 0 rgba(255,255,255,.07),0 1px 3px rgba(0,0,0,.35)}
+.t:hover{transform:translateY(-2px)}
+.sheet{box-shadow:var(--sh),inset 0 1px 0 rgba(255,255,255,.07)}
+.sp{flex:1}.lay{display:flex;gap:4px;margin-inline-end:6px}.lay .chip{padding:3px 10px}
+.act{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 10px}.act:empty{display:none}
+.act .pill{font-size:11.5px;color:var(--ac);border-color:rgba(124,242,201,.35);background:rgba(124,242,201,.08);min-height:28px}
+.empty h3{margin:6px 0;color:var(--tx)}.empty p{margin:0 0 10px}.sug{display:flex;gap:6px;justify-content:center;margin-bottom:14px}
+.ov{transition:opacity .25s,visibility 0s}.ov:not(.on){visibility:hidden;transition:opacity .25s,visibility 0s .25s}
+#more{display:block}
+#grid.list{grid-template-columns:1fr;gap:4px}
+.t.r{height:auto;min-height:54px;flex-direction:row;align-items:center;gap:10px;padding:7px 10px;border-radius:8px}
+.t.r:hover{transform:none;background:linear-gradient(90deg,hsl(var(--h) 45% 50%/.2),hsl(var(--h) 45% 50%/.05))}
+.t.r b{font-size:24px;width:30px;text-align:center;margin:0}
+.t.r .nm{flex:1;min-width:0;display:flex;flex-direction:column}
+.t.r em{font-size:13px;letter-spacing:0;text-transform:none;font-weight:600;color:var(--tx)}
+.t.r .nm small{font-size:11px;color:hsl(var(--h) 55% 72%)}
+.t.r .kc{width:52px;text-align:end;font-size:15px;font-weight:700;color:var(--tx);font-variant-numeric:tabular-nums}
+.t.r .kc small{display:block;font-size:9.5px;font-weight:400;color:var(--mu)}
+.t.r .mc{position:relative;width:46px;text-align:end;font-size:12.5px;color:var(--tx);padding-bottom:7px;font-variant-numeric:tabular-nums}
+.t.r .mc small{font-size:9.5px;color:var(--mu);margin-inline-start:1px}
+.t.r .mc::after,.t.r .mc i{content:'';position:absolute;left:0;bottom:0;height:3px;border-radius:2px}
+.t.r .mc::after{right:0;background:rgba(255,255,255,.08)}
+.t.r .mc i{width:var(--w);background:var(--c);z-index:1}
+@media(min-width:900px){#grid.list{grid-template-columns:1fr 1fr}.t.r .mc{width:60px}}
+@media(min-width:700px){#bf{display:none}}
+@media(max-width:699px){#more{display:none}#more.open{display:block}.search{order:5;flex-basis:100%}header{padding:8px 12px 6px}main{padding:10px 12px 120px}.chip{padding:6px 12px;font-size:12.5px}.sheet{max-height:92vh}.btn{padding:8px 10px}.brand{flex:1}}
+@media(max-width:439px){.t.r .mc.o{display:none}}
+@media(prefers-reduced-motion:reduce){*,::before,::after{transition-duration:.01ms!important;animation-duration:.01ms!important}}
+
+/* ---------- i18n / RTL (Kurdish Sorani) ---------- */
+[dir=rtl] body,[dir=rtl] button,[dir=rtl] input,[dir=rtl] select{font-family:"Vazirmatn","Noto Sans Arabic","Noto Naskh Arabic","Segoe UI",Tahoma,sans-serif}
+[dir=rtl] body{line-height:1.55}
+[dir=rtl] *{letter-spacing:0!important;text-transform:none!important}
+[dir=rtl] .t:not(.r){height:102px}
+[dir=rtl] .bar{grid-template-columns:96px 1fr 84px}
+[dir=rtl] .cb{grid-template-columns:104px 1fr 64px}
+[dir=rtl] .c2,[dir=rtl] .c2h{grid-template-columns:1fr 96px 1fr}
+[dir=rtl] .brand p{font-size:12px}
+/* ---------- v2: micronutrients, favorites ---------- */
+.bar{grid-template-columns:70px 1fr 84px}
+.cb{grid-template-columns:96px 1fr 64px}
+.t.fv::after{content:'★';position:absolute;top:3px;inset-inline-end:5px;font-size:10px;color:#ffd166}
+/* ---------- v3: serving cards ---------- */
+.sv{background:var(--pn);border:1px solid var(--bd);border-radius:10px;padding:10px;margin:0 0 10px}
+.sv.h100{background:transparent}.sv.h100 .tot b{font-size:14px;color:#cfd6e2}
+.svh{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--mu);margin-bottom:8px}
+.svn{font-size:15px;font-weight:600;line-height:1.25}.svn small{color:var(--mu);font-weight:400;font-size:12px}
+details summary{cursor:pointer;list-style:none}details summary::-webkit-details-marker{display:none}
+/* v4: portion slider + 2-food compare */
+.pg{display:flex;align-items:baseline;gap:6px;margin-bottom:2px}
+.pg input{width:84px;background:var(--pn);border:1px solid var(--bd);border-radius:8px;padding:5px 8px;color:var(--tx);font-size:22px;font-weight:700;text-align:end}
+.pg span{color:var(--mu)}
+#pr{width:100%;accent-color:var(--ac);margin:8px 0 6px}
+.pc{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.c2,.c2h{display:grid;grid-template-columns:1fr 84px 1fr;gap:8px;align-items:center}
+.c2h{font-size:13px;font-weight:600;padding:4px 0 8px;border-bottom:1px solid var(--bd)}
+.c2h span:first-child{text-align:end}
+.c2{padding:7px 0;border-bottom:1px solid rgba(255,255,255,.06)}
+.c2l{text-align:center;font-size:11px;color:var(--mu)}
+.c2v{font-size:15px;font-variant-numeric:tabular-nums}
+.c2v:first-child{text-align:end}
+.hi{color:var(--ac);font-weight:700}.lo{color:var(--mu)}
+.hi i,.lo i{font-style:normal;font-size:10px;margin:0 4px}.lo i{color:#ff9f5a}
+</style></head><body>
+<header>
+ <div class="top">
+  <div class="brand"><h1 data-i="title"></h1><p data-i="sub"></p></div>
+  <div class="lay" id="lt" role="group" aria-label="Language / زمان"><button class="chip" data-l="en">English</button><button class="chip" data-l="ckb" lang="ckb">کوردی</button></div><div class="search"><input id="q" type="search" data-ph="ph" data-al="sf" autocomplete="off"><kbd>/</kbd></div>
+  <button class="btn" id="bf" aria-expanded="false" aria-controls="more" data-i="filters"></button><button class="btn" id="bc" data-i="cmp"></button><button class="btn" id="bm"><span data-i="meal"></span> <b id="mc">0</b></button>
+ </div>
+ <div class="row" id="cats"></div>
+ <div id="more"><div class="row" id="sorts"></div>
+ <div class="row" id="views"></div>
+ <div class="row" id="disc"></div></div>
+</header>
+<main>
+ <div class="stat"><span id="cnt" role="status" aria-live="polite">Loading…</span><span class="sp"></span><div class="lay"><button class="chip" id="lg" data-al="gl" data-i="grid"></button><button class="chip" id="ll" data-al="ll" data-i="list"></button></div><button class="chip" id="rs" data-i="rs"></button></div><div id="act" class="act"></div>
+ <div id="grid"></div>
+ <p class="note" data-i="note"></p>
+</main>
+<div id="tray"><div class="ch" id="tch"></div><button class="btn" id="tgo" data-i="cmp"></button><button class="btn" id="tclr" data-i="clear"></button></div>
+<div id="tip"></div>
+<div class="ov" id="ov"><div class="sheet" id="sh" tabindex="-1" role="dialog" aria-modal="true"></div></div>
+<script>
+/* ---------- DATA (name|cat|emoji|kcal|protein|carbs|fat|fiber|sugar|water|sodiumMg) per 100 g; servings live in SERV_RAW ---------- */
+const RAW=`Apple|F|🍎|52|0.3|13.8|0.2|2.4|10.4|85.6|1
+Banana|F|🍌|89|1.1|22.8|0.3|2.6|12.2|74.9|1
+Orange|F|🍊|47|0.9|11.8|0.1|2.4|9.4|86.8|0
+Tangerine|F|🍊|53|0.8|13.3|0.3|1.8|10.6|85.2|2
+Lemon|F|🍋|29|1.1|9.3|0.3|2.8|2.5|89|2
+Grapes|F|🍇|69|0.7|18.1|0.2|0.9|15.5|80.5|2
+Strawberries|F|🍓|32|0.7|7.7|0.3|2|4.9|90.9|1
+Blueberries|F|🫐|57|0.7|14.5|0.3|2.4|10|84.2|1
+Raspberries|F|🍓|52|1.2|11.9|0.7|6.5|4.4|85.8|1
+Watermelon|F|🍉|30|0.6|7.6|0.2|0.4|6.2|91.5|1
+Melon (cantaloupe)|F|🍈|34|0.8|8.2|0.2|0.9|7.9|90.2|16
+Pineapple|F|🍍|50|0.5|13.1|0.1|1.4|9.9|86|1
+Mango|F|🥭|60|0.8|15|0.4|1.6|13.7|83.5|1
+Papaya|F|🍈|43|0.5|10.8|0.3|1.7|7.8|88.1|8
+Kiwi|F|🥝|61|1.1|14.7|0.5|3|9|83.1|3
+Peach|F|🍑|39|0.9|9.5|0.3|1.5|8.4|88.9|0
+Pear|F|🍐|57|0.4|15.2|0.1|3.1|9.8|83.7|1
+Cherries|F|🍒|63|1.1|16|0.2|2.1|12.8|82.2|0
+Pomegranate|F|🔴|83|1.7|18.7|1.2|4|13.7|77.9|3
+Fig (fresh)|F|🟤|74|0.8|19.2|0.3|2.9|16.3|79.1|1
+Date (Medjool)|F|🟤|277|1.8|75|0.2|6.7|66.5|21.3|1
+Avocado|F|🥑|160|2|8.5|14.7|6.7|0.7|73.2|7
+Coconut (raw meat)|F|🥥|354|3.3|15.2|33.5|9|6.2|47|20
+Raisins|F|🍇|299|3.1|79.2|0.5|3.7|59.2|15.4|11
+Dried apricots|F|🍑|241|3.4|62.6|0.5|7.3|53.4|30.9|10
+Potato (raw)|V|🥔|77|2|17.5|0.1|2.2|0.8|79.3|6
+Sweet potato (raw)|V|🍠|86|1.6|20.1|0.1|3|4.2|77.3|55
+Tomato|V|🍅|18|0.9|3.9|0.2|1.2|2.6|94.5|5
+Cucumber|V|🥒|15|0.7|3.6|0.1|0.5|1.7|95.2|2
+Carrot|V|🥕|41|0.9|9.6|0.2|2.8|4.7|88.3|69
+Onion|V|🧅|40|1.1|9.3|0.1|1.7|4.2|89.1|4
+Garlic|V|🧄|149|6.4|33.1|0.5|2.1|1|58.6|17
+Spinach (raw)|V|🥬|23|2.9|3.6|0.4|2.2|0.4|91.4|79
+Lettuce (romaine)|V|🥬|17|1.2|3.3|0.3|2.1|1.2|94.9|8
+Broccoli (raw)|V|🥦|34|2.8|6.6|0.4|2.6|1.7|89.3|33
+Cauliflower (raw)|V|🥦|25|1.9|5|0.3|2|1.9|92.1|30
+Cabbage (raw)|V|🥬|25|1.3|5.8|0.1|2.5|3.2|92.2|18
+Eggplant (raw)|V|🍆|25|1|5.9|0.2|3|3.5|92.3|2
+Zucchini|V|🥒|17|1.2|3.1|0.3|1|2.5|94.8|8
+Bell pepper (red)|V|🫑|31|1|6|0.3|2.1|4.2|92.2|4
+Chili pepper|V|🌶️|40|1.9|8.8|0.4|1.5|5.3|88|9
+Green peas (raw)|V|🟢|81|5.4|14.5|0.4|5.7|5.7|78.9|5
+Green beans|V|🫛|31|1.8|7|0.2|2.7|3.3|90.3|6
+Sweet corn|V|🌽|86|3.3|18.7|1.4|2|6.3|76|15
+Mushrooms|V|🍄|22|3.1|3.3|0.3|1|2|92.4|5
+Beetroot (raw)|V|🟣|43|1.6|9.6|0.2|2.8|6.8|87.6|78
+Pumpkin (raw)|V|🎃|26|1|6.5|0.1|0.5|2.8|91.6|1
+Kale (raw)|V|🥬|35|2.9|4.4|1.5|4.1|0.8|89.6|53
+White rice (dry)|G|🍚|365|7.1|80|0.7|1.3|0.1|11.6|5
+White rice (cooked)|G|🍚|130|2.7|28.2|0.3|0.4|0.1|68.4|1
+Brown rice (cooked)|G|🍚|123|2.7|25.6|1|1.6|0.2|70.3|4
+Basmati rice (cooked)|G|🍚|121|3.5|25.2|0.4|0.7|0.1|70|1
+Oats (dry)|G|🌾|389|16.9|66.3|6.9|10.6|1|8.2|2
+Wheat flour|G|🌾|364|10.3|76.3|1|2.7|0.3|11.9|2
+White bread|G|🍞|265|9|49|3.2|2.7|5|36.7|491
+Whole-wheat bread|G|🍞|252|12.5|42.7|3.5|6|6|38|450
+Pita bread|G|🫓|275|9.1|55.7|1.2|2.2|1.3|32|536
+Pasta (dry)|G|🍝|371|13|74.7|1.5|3.2|2.7|10.4|6
+Pasta (cooked)|G|🍝|158|5.8|30.9|0.9|1.8|0.6|62|1
+Egg noodles (cooked)|G|🍜|138|4.5|25|2.1|1.2|0.5|66|5
+Couscous (cooked)|G|🍚|112|3.8|23.2|0.2|1.4|0.1|72.6|5
+Bulgur (cooked)|G|🌾|83|3.1|18.6|0.2|4.5|0.1|78|5
+Quinoa (cooked)|G|🌾|120|4.4|21.3|1.9|2.8|0.9|71.6|7
+Barley (cooked)|G|🌾|123|2.3|28.2|0.4|3.8|0.3|69.2|3
+Cornmeal|G|🌽|362|8.1|76.9|3.6|7.3|0.6|10.9|35
+Chicken breast (cooked)|M|🍗|165|31|0|3.6|0|0|65|74
+Chicken thigh (cooked)|M|🍗|209|26|0|10.9|0|0|60|95
+Whole chicken (roasted)|M|🐔|239|27.3|0|13.6|0|0|60|82
+Beef (braised)|M|🥩|250|26|0|15|0|0|58|72
+Steak (sirloin, grilled)|M|🥩|206|29|0|9.4|0|0|60|60
+Ground beef 80/20 (cooked)|M|🥩|272|25.9|0|17.4|0|0|56|75
+Lamb (roasted)|M|🍖|258|25.6|0|16.5|0|0|57|72
+Turkey breast (roasted)|M|🦃|135|30|0|0.7|0|0|68|55
+Duck (roasted, with skin)|M|🦆|337|19|0|28|0|0|51|65
+Bacon (cooked)|M|🥓|541|37|1.4|42|0|0|12|1717
+Salmon (cooked)|S|🐟|206|22.1|0|12.4|0|0|65|61
+Tuna (canned in water)|S|🐟|116|25.5|0|0.8|0|0|74|247
+Sardines (canned in oil)|S|🐟|208|24.6|0|11.5|0|0|60|307
+Mackerel (cooked)|S|🐟|262|23.9|0|17.8|0|0|55|83
+Cod (cooked)|S|🐟|105|22.8|0|0.9|0|0|75|78
+Tilapia (cooked)|S|🐟|128|26.2|0|2.7|0|0|72|56
+Trout (cooked)|S|🐟|168|23.8|0|7.2|0|0|69|57
+Shrimp (cooked)|S|🦐|99|24|0.2|0.3|0|0|76|111
+Crab (cooked)|S|🦀|97|19.4|0|1.5|0|0|79|1072
+Egg (raw)|D|🥚|143|12.6|0.7|9.5|0|0.4|76.2|142
+Egg (boiled)|D|🥚|155|12.6|1.1|10.6|0|1.1|74.6|124
+Egg white (raw)|D|🥚|52|10.9|0.7|0.2|0|0.7|87.6|166
+Milk (whole)|D|🥛|61|3.2|4.8|3.3|0|5.1|88.1|43
+Greek yogurt (plain, nonfat)|D|🥣|59|10.2|3.6|0.4|0|3.2|85|36
+Yogurt (plain, whole milk)|D|🥣|61|3.5|4.7|3.3|0|4.7|88|46
+Cheddar cheese|D|🧀|403|24.9|1.3|33.1|0|0.5|37.1|621
+Mozzarella|D|🧀|280|27.5|3.1|17.1|0|1.2|50|627
+Feta cheese|D|🧀|264|14.2|4.1|21.3|0|4.1|55.2|917
+Cottage cheese|D|🧀|98|11.1|3.4|4.3|0|2.7|80|364
+Butter (salted)|D|🧈|717|0.9|0.1|81.1|0|0.1|16.7|643
+Heavy cream|D|🥛|340|2.8|2.8|36.1|0|2.9|57.7|27
+Lentils (cooked)|B|🫘|116|9|20.1|0.4|7.9|1.8|69.6|2
+Chickpeas (cooked)|B|🫘|164|8.9|27.4|2.6|7.6|4.8|60.2|7
+Kidney beans (cooked)|B|🫘|127|8.7|22.8|0.5|6.4|0.3|66.9|1
+Black beans (cooked)|B|🫘|132|8.9|23.7|0.5|8.7|0.3|65.9|1
+Soybeans (cooked)|B|🫘|173|16.6|9.9|9|6|3|62.5|1
+Tofu (firm)|B|🧊|76|8.1|1.9|4.8|0.3|0.6|84.6|7
+Hummus|B|🫘|166|7.9|14.3|9.6|6|0.3|64.9|379
+Almonds|N|🌰|579|21.2|21.6|49.9|12.5|4.4|4.4|1
+Walnuts|N|🌰|654|15.2|13.7|65.2|6.7|2.6|4.1|2
+Peanuts|N|🥜|567|25.8|16.1|49.2|8.5|4.7|6.5|18
+Pistachios|N|🌰|560|20.2|27.2|45.3|10.6|7.7|4|1
+Cashews|N|🌰|553|18.2|30.2|43.9|3.3|5.9|5.2|12
+Hazelnuts|N|🌰|628|15|16.7|60.8|9.7|4.3|5.3|0
+Sunflower seeds|N|🌻|584|20.8|20|51.5|8.6|2.6|4.7|9
+Pumpkin seeds|N|🎃|559|30.2|10.7|49|6|1.4|5.2|7
+Sesame seeds|N|🌱|573|17.7|23.5|49.7|11.8|0.3|4.7|11
+Chia seeds|N|🌱|486|16.5|42.1|30.7|34.4|0|5.8|16
+Peanut butter|N|🥜|588|25|20|50|6|9|1.8|426
+Dark chocolate (70–85%)|K|🍫|598|7.8|45.9|42.6|10.9|24|1|20
+Milk chocolate|K|🍫|535|7.7|59.4|29.7|3.4|51.5|1.3|79
+Chocolate chip cookies|K|🍪|488|5.4|65|23|2.7|36|3|370
+Potato chips|K|🥔|536|7|52.9|34.8|4.8|0.3|2|525
+Popcorn (air-popped)|K|🍿|387|12.9|77.8|4.5|14.5|0.9|3.8|8
+Ice cream (vanilla)|K|🍨|207|3.5|23.6|11|0.7|21.2|60.7|80
+Chocolate cake (frosted)|K|🍰|371|4|53|16|2.3|37|24|300
+Glazed donut|K|🍩|421|4.9|51|22.5|1.7|22|20|330
+Croissant|K|🥐|406|8.2|45.8|21|2.6|11.3|22|467
+Gummy candy|K|🍬|343|6.9|77|0.2|0|46|15|35
+Water|R|💧|0|0|0|0|0|0|100|2
+Orange juice|R|🧃|45|0.7|10.4|0.2|0.2|8.4|88.3|1
+Apple juice|R|🧃|46|0.1|11.4|0.1|0.2|9.6|88|4
+Coffee (black)|R|☕|1|0.1|0|0|0|0|99.4|2
+Tea (brewed)|R|🍵|1|0|0.3|0|0|0|99.7|3
+Cola|R|🥤|42|0|10.6|0|0|10.6|89|4
+Energy drink|R|⚡|45|0|11|0|0|11|88|40
+Sports drink|R|🥤|26|0|6.4|0|0|5.8|93|41
+Almond milk (unsweetened)|R|🥛|15|0.6|0.3|1.2|0.2|0|96|72
+Pizza (cheese)|P|🍕|266|11|33|10|2.3|3.6|46|598
+Cheeseburger|P|🍔|295|17|30|14|1.3|6|44|497
+French fries|P|🍟|312|3.4|41|15|3.8|0.3|38|210
+Chicken shawarma wrap|P|🌯|220|15|20|9|1.5|2|52|520
+Falafel|P|🧆|333|13.3|31.8|17.8|4.9|3.5|34|294
+Sushi roll|P|🍣|143|4.5|26|2.5|0.9|3|66|380
+Beef taco|P|🌮|226|9.4|20|12|3|1.5|55|400
+Chicken curry|P|🍛|140|11|6|8|1.5|2|74|380
+Chicken noodle soup|P|🍲|36|2|4.7|1|0.2|0.6|91|340
+Garden salad|P|🥗|20|1.3|3.5|0.2|1.5|2.2|93|25
+Fried chicken|P|🍗|246|19|9|14|0.5|0|57|450
+Turkey sandwich|P|🥪|207|13|24|6|2|3|52|620
+Dolma (rice-stuffed leaves)|X|🍃|135|2.5|18|6|2.6|2|70|450
+Chicken biryani|X|🍛|160|8|21|5|1|1|65|400
+Kubba (fried, stuffed)|X|🧆|260|10|24|14|2|1|50|420
+Pacha (stewed sheep)|X|🍲|150|13|2|10|0|0|74|300
+Samoon (Iraqi bread)|X|🥖|270|9|53|2|2.5|2|34|500
+Kurdish kebab (kofta)|X|🍢|230|22|2|15|0.3|1|59|440
+Labneh|X|🥣|160|6|4|13|0|4|78|50
+Doogh / ayran|X|🥛|36|2.2|3|1.5|0|3|91|180
+Mujaddara (lentils & rice)|X|🍚|135|5.5|24|2.3|3|1|68|300
+Tahini|X|🫙|595|17|21.2|53.8|9.3|0.5|3|115`;
+/* micronutrients, mg per 100 g: name|potassium|calcium|iron|vitaminC (foods not listed show no micronutrient data) */
+const MICRO_RAW=`Apple|107|6|0.1|4.6
+Banana|358|5|0.3|8.7
+Orange|181|40|0.1|53
+Lemon|138|26|0.6|53
+Strawberries|153|16|0.4|59
+Blueberries|77|6|0.3|10
+Watermelon|112|7|0.2|8
+Melon (cantaloupe)|267|9|0.2|37
+Pineapple|109|13|0.3|48
+Mango|168|11|0.2|36
+Papaya|182|20|0.3|61
+Kiwi|312|34|0.3|93
+Peach|190|6|0.3|7
+Pear|116|9|0.2|4
+Cherries|222|13|0.4|7
+Pomegranate|236|10|0.3|10
+Fig (fresh)|232|35|0.4|2
+Date (Medjool)|696|64|0.9|0
+Avocado|485|12|0.6|10
+Raisins|749|50|1.9|2
+Dried apricots|1162|55|2.7|1
+Potato (raw)|421|12|0.8|20
+Sweet potato (raw)|337|30|0.6|2
+Tomato|237|10|0.3|14
+Cucumber|147|16|0.3|3
+Carrot|320|33|0.3|6
+Onion|146|23|0.2|7
+Garlic|401|181|1.7|31
+Spinach (raw)|558|99|2.7|28
+Lettuce (romaine)|247|33|1|4
+Broccoli (raw)|316|47|0.7|89
+Cauliflower (raw)|299|22|0.4|48
+Cabbage (raw)|170|40|0.5|37
+Eggplant (raw)|229|9|0.2|2
+Zucchini|261|16|0.4|18
+Bell pepper (red)|211|7|0.4|128
+Chili pepper|322|14|1|144
+Green peas (raw)|244|25|1.5|40
+Green beans|211|37|1|12
+Sweet corn|270|2|0.5|7
+Mushrooms|318|3|0.5|2
+Beetroot (raw)|325|16|0.8|5
+Pumpkin (raw)|340|21|0.8|9
+Kale (raw)|491|150|1.5|120
+Oats (dry)|429|54|4.7|0
+Whole-wheat bread|248|107|2.5|0
+Quinoa (cooked)|172|17|1.5|0
+Lentils (cooked)|369|19|3.3|1.5
+Chickpeas (cooked)|291|49|2.9|1.3
+Kidney beans (cooked)|405|28|2.9|1.2
+Black beans (cooked)|355|27|2.1|0
+Soybeans (cooked)|515|102|5.1|1.7
+Tofu (firm)|121|350|2.7|0
+Hummus|228|38|2.4|0
+Almonds|733|269|3.7|0
+Walnuts|441|98|2.9|1.3
+Peanuts|705|92|4.6|0
+Pistachios|1025|105|3.9|6
+Cashews|660|37|6.7|0.5
+Hazelnuts|680|114|4.7|6
+Sunflower seeds|645|78|5.2|1.4
+Pumpkin seeds|809|46|8.8|2
+Sesame seeds|468|975|14.6|0
+Chia seeds|407|631|7.7|2
+Tahini|414|426|8.9|0
+Peanut butter|649|49|1.9|0
+Chicken breast (cooked)|256|15|1|0
+Beef (braised)|318|14|2.6|0
+Salmon (cooked)|384|15|0.4|0
+Tuna (canned in water)|237|11|1.4|0
+Sardines (canned in oil)|397|382|2.9|0
+Mackerel (cooked)|520|15|1.6|0
+Cod (cooked)|244|14|0.5|0
+Shrimp (cooked)|259|64|0.5|0
+Egg (boiled)|126|50|1.2|0
+Milk (whole)|132|113|0|0
+Greek yogurt (plain, nonfat)|141|111|0.1|0
+Yogurt (plain, whole milk)|155|121|0.1|1
+Cheddar cheese|98|721|0.7|0
+Mozzarella|76|505|0.4|0
+Feta cheese|62|493|0.7|0
+Cottage cheese|104|83|0.1|0
+Dark chocolate (70–85%)|715|73|11.9|0
+Orange juice|200|11|0.2|50`;
+/* serving data: name|servingGrams|servingAmount|servingUnit|servingDescriptionEN|servingDescriptionKU */
+const SERV_RAW=`Apple|182|1|whole|1 whole apple|١ سێوی تەواو
+Banana|118|1|whole|1 medium banana|١ مۆزی مامناوەند
+Orange|131|1|whole|1 medium orange|١ پرتەقاڵی مامناوەند
+Tangerine|88|1|whole|1 medium tangerine|١ لالەنگی
+Lemon|58|1|whole|1 whole lemon|١ لیمۆی تەواو
+Grapes|150|1|cup|1 cup of grapes|١ پیاڵە ترێ
+Strawberries|152|1|cup|1 cup of strawberries|١ پیاڵە فڕەولە
+Blueberries|148|1|cup|1 cup of blueberries|١ پیاڵە بلووبێری
+Raspberries|123|1|cup|1 cup of raspberries|١ پیاڵە تووتڕک
+Watermelon|280|1|slice|1 slice of watermelon|١ پارچە شوتی
+Melon (cantaloupe)|160|1|cup|1 cup of melon cubes|١ پیاڵە کاڵەکی پارچەکراو
+Pineapple|165|1|cup|1 cup of pineapple chunks|١ پیاڵە ئەنەناسی پارچەکراو
+Mango|165|1|cup|1 cup of sliced mango|١ پیاڵە مانگۆی پارچەکراو
+Papaya|145|1|cup|1 cup of papaya cubes|١ پیاڵە پاپایای پارچەکراو
+Kiwi|69|1|whole|1 kiwi|١ کیوی
+Peach|150|1|whole|1 medium peach|١ قۆخی مامناوەند
+Pear|178|1|whole|1 medium pear|١ هەرمێی مامناوەند
+Cherries|138|1|cup|1 cup of cherries|١ پیاڵە گێلاس
+Pomegranate|87|0.5|cup|½ cup of pomegranate seeds|نیو پیاڵە دەنکە هەنار
+Fig (fresh)|50|1|piece|1 medium fresh fig|١ دانە هەنجیری تازە
+Date (Medjool)|24|1|piece|1 Medjool date|١ دانە خورمای مەجدول
+Avocado|100|0.5|whole|½ avocado|نیو ئەڤۆکادۆ
+Coconut (raw meat)|45|1|piece|1 small piece of coconut|١ پارچەی بچووکی گوێزی هیندی
+Raisins|40|0.25|cup|¼ cup of raisins|چارەکە پیاڵەیەک کشمیش
+Dried apricots|35|5|piece|5 dried apricot halves|٥ نیوەی زەردەلووی وشککراو
+Potato (raw)|173|1|whole|1 medium potato|١ پەتاتەی مامناوەند
+Sweet potato (raw)|130|1|whole|1 medium sweet potato|١ پەتاتەی شیرینی مامناوەند
+Tomato|123|1|whole|1 medium tomato|١ تەماتەی مامناوەند
+Cucumber|100|0.5|whole|½ medium cucumber|نیو خەیار
+Carrot|61|1|whole|1 medium carrot|١ گەزەری مامناوەند
+Onion|110|1|whole|1 medium onion|١ پیازی مامناوەند
+Garlic|3|1|piece|1 garlic clove|١ دەنکە سیر
+Spinach (raw)|30|1|cup|1 cup of raw spinach|١ پیاڵە سپێناخ
+Lettuce (romaine)|47|1|cup|1 cup of shredded lettuce|١ پیاڵە کاهووی ورد
+Broccoli (raw)|91|1|cup|1 cup of chopped broccoli|١ پیاڵە بڕۆکۆلی ورد
+Cauliflower (raw)|107|1|cup|1 cup of cauliflower florets|١ پیاڵە گوڵەکەلەم
+Cabbage (raw)|89|1|cup|1 cup of shredded cabbage|١ پیاڵە کەلەمی ورد
+Eggplant (raw)|82|1|cup|1 cup of eggplant cubes|١ پیاڵە باینجانی پارچەکراو
+Zucchini|196|1|whole|1 medium zucchini|١ کولەکەی مامناوەند
+Bell pepper (red)|119|1|whole|1 medium bell pepper|١ بیبەری سووری شیرین
+Chili pepper|45|1|whole|1 chili pepper|١ بیبەری تیژ
+Green peas (raw)|145|1|cup|1 cup of green peas|١ پیاڵە بازەلیای سەوز
+Green beans|110|1|cup|1 cup of green beans|١ پیاڵە فاسۆلیای سەوز
+Sweet corn|90|1|whole|1 ear of sweet corn|١ دانە گەنمەشامی شیرین
+Mushrooms|70|1|cup|1 cup of sliced mushrooms|١ پیاڵە کارگی پارچەکراو
+Beetroot (raw)|82|1|whole|1 medium beet|١ چەوەندەری مامناوەند
+Pumpkin (raw)|116|1|cup|1 cup of pumpkin cubes|١ پیاڵە کودی پارچەکراو
+Kale (raw)|67|1|cup|1 cup of chopped kale|١ پیاڵە کەلەرمی ورد
+White rice (dry)|45|0.25|cup|¼ cup of dry white rice|چارەکە پیاڵەیەک برنجی وشک
+White rice (cooked)|158|1|cup|1 cup of cooked white rice|١ پیاڵە برنجی لێنراو
+Brown rice (cooked)|195|1|cup|1 cup of cooked brown rice|١ پیاڵە برنجی قاوەیی لێنراو
+Basmati rice (cooked)|200|1|bowl|1 bowl of cooked basmati rice|١ کاسە برنجی باسمەتی لێنراو
+Oats (dry)|40|0.5|cup|½ cup of dry oats|نیو پیاڵە شۆفانی وشک
+Wheat flour|30|0.25|cup|¼ cup of wheat flour|چارەکە پیاڵەیەک ئاردی گەنم
+White bread|30|1|slice|1 slice of white bread|١ پارچە نانی سپی
+Whole-wheat bread|32|1|slice|1 slice of whole-wheat bread|١ پارچە نانی گەنمی تەواو
+Pita bread|60|1|piece|1 pita bread|١ نانی پیتا
+Pasta (dry)|85|1|serving|1 serving of dry pasta|١ ژەم پاستای وشک
+Pasta (cooked)|220|1|plate|1 plate of cooked pasta|١ قاپ پاستای لێنراو
+Egg noodles (cooked)|160|1|cup|1 cup of cooked egg noodles|١ پیاڵە نۆدڵی هێلکەی لێنراو
+Couscous (cooked)|157|1|cup|1 cup of cooked couscous|١ پیاڵە کوسکوسی لێنراو
+Bulgur (cooked)|182|1|cup|1 cup of cooked bulgur|١ پیاڵە ساوەری لێنراو
+Quinoa (cooked)|185|1|cup|1 cup of cooked quinoa|١ پیاڵە کینوای لێنراو
+Barley (cooked)|157|1|cup|1 cup of cooked barley|١ پیاڵە جۆی لێنراو
+Cornmeal|30|0.25|cup|¼ cup of cornmeal|چارەکە پیاڵەیەک ئاردی گەنمەشامی
+Chicken breast (cooked)|150|1|serving|1 serving of chicken breast|١ ژەم سنگی مریشک
+Chicken thigh (cooked)|100|1|piece|1 chicken thigh|١ ڕانی مریشک
+Whole chicken (roasted)|150|1|serving|1 serving of roasted chicken|١ ژەم مریشکی برژاو
+Beef (braised)|120|1|serving|1 serving of braised beef|١ ژەم گۆشتی گای کوڵاو
+Steak (sirloin, grilled)|170|1|piece|1 sirloin steak|١ پارچە ستەیکی گا
+Ground beef 80/20 (cooked)|113|1|piece|1 ground beef patty|١ پارچەی گۆشتی کوتراو
+Lamb (roasted)|120|1|serving|1 serving of roasted lamb|١ ژەم گۆشتی بەرخی برژاو
+Turkey breast (roasted)|120|1|serving|1 serving of turkey breast|١ ژەم سنگی مریشکی هیندی
+Duck (roasted, with skin)|120|1|serving|1 serving of roasted duck|١ ژەم مراوی برژاو
+Bacon (cooked)|16|2|slice|2 slices of bacon|٢ پارچە بەیکن
+Salmon (cooked)|120|1|piece|1 salmon fillet|١ پارچەی ماسی سەلمۆن
+Tuna (canned in water)|85|0.5|can|½ can of tuna|نیو قوتووی تونا
+Sardines (canned in oil)|92|1|can|1 can of sardines|١ قوتووی ساردین
+Mackerel (cooked)|100|1|piece|1 mackerel fillet|١ پارچەی ماسی ماکرێل
+Cod (cooked)|120|1|piece|1 cod fillet|١ پارچەی ماسی کۆد
+Tilapia (cooked)|110|1|piece|1 tilapia fillet|١ پارچەی ماسی تیلاپیا
+Trout (cooked)|100|1|piece|1 trout fillet|١ پارچەی ماسی ترۆت
+Shrimp (cooked)|85|8|piece|About 8 medium shrimp|نزیکەی ٨ میگۆی مامناوەند
+Crab (cooked)|85|1|serving|1 serving of crab meat|١ ژەم قرژاڵ
+Egg (raw)|50|1|whole|1 large egg (raw)|١ هێلکەی خاو
+Egg (boiled)|50|1|whole|1 large boiled egg|١ هێلکەی کوڵاو
+Egg white (raw)|33|1|whole|1 large egg white|١ سپیەی هێلکە
+Milk (whole)|244|1|glass|1 glass of whole milk|١ جام شیر
+Greek yogurt (plain, nonfat)|170|1|tub|1 small tub of Greek yogurt|١ کاسەی بچووک ماستی یۆنانی
+Yogurt (plain, whole milk)|245|1|bowl|1 bowl of plain yogurt|١ کاسە ماست
+Cheddar cheese|28|1|slice|1 slice of cheddar|١ پارچە پەنیری چێدەر
+Mozzarella|28|1|slice|1 slice of mozzarella|١ پارچە پەنیری مۆزەرێلا
+Feta cheese|30|1|piece|1 piece of feta|١ پارچە پەنیری فێتا
+Cottage cheese|113|0.5|cup|½ cup of cottage cheese|نیو پیاڵە پەنیری کۆتیج
+Butter (salted)|14|1|tbsp|1 tablespoon of butter|١ کەوچکی گەورە کەرە
+Heavy cream|15|1|tbsp|1 tablespoon of heavy cream|١ کەوچکی گەورە کرێم
+Lentils (cooked)|198|1|cup|1 cup of cooked lentils|١ پیاڵە نیسکی لێنراو
+Chickpeas (cooked)|164|1|cup|1 cup of cooked chickpeas|١ پیاڵە نۆکی لێنراو
+Kidney beans (cooked)|177|1|cup|1 cup of cooked kidney beans|١ پیاڵە فاسۆلیای سووری لێنراو
+Black beans (cooked)|172|1|cup|1 cup of cooked black beans|١ پیاڵە فاسۆلیای ڕەشی لێنراو
+Soybeans (cooked)|86|0.5|cup|½ cup of cooked soybeans|نیو پیاڵە سۆیای لێنراو
+Tofu (firm)|100|1|piece|1 piece of firm tofu|١ پارچە تۆفو
+Hummus|30|2|tbsp|2 tablespoons of hummus|٢ کەوچکی گەورە حومس
+Almonds|28|1|handful|1 small handful of almonds|مشتێکی بچووک بادەم
+Walnuts|28|1|handful|1 small handful of walnuts|مشتێکی بچووک گوێز
+Peanuts|28|1|handful|1 small handful of peanuts|مشتێکی بچووک پاقلەی سودانی
+Pistachios|28|1|handful|1 small handful of pistachios|مشتێکی بچووک فستق
+Cashews|28|1|handful|1 small handful of cashews|مشتێکی بچووک کاجو
+Hazelnuts|28|1|handful|1 small handful of hazelnuts|مشتێکی بچووک فندق
+Sunflower seeds|28|1|handful|1 small handful of sunflower seeds|مشتێکی بچووک تۆوی گوڵەبەڕۆژە
+Pumpkin seeds|28|1|handful|1 small handful of pumpkin seeds|مشتێکی بچووک تۆوی کودی
+Sesame seeds|9|1|tbsp|1 tablespoon of sesame seeds|١ کەوچکی گەورە تۆوی کونجی
+Chia seeds|12|1|tbsp|1 tablespoon of chia seeds|١ کەوچکی گەورە تۆوی چیا
+Peanut butter|32|2|tbsp|2 tablespoons of peanut butter|٢ کەوچکی گەورە کەرەی فستق عەبید
+Dark chocolate (70–85%)|28|3|piece|3 squares of dark chocolate|٣ چوارگۆشەی شۆکۆلاتەی ڕەش
+Milk chocolate|43|1|piece|1 small milk chocolate bar|١ پارچە شۆکۆلاتەی شیری
+Chocolate chip cookies|30|1|piece|1 chocolate chip cookie|١ بسکویتی شۆکۆلاتە
+Potato chips|28|1|bag|1 small bag of potato chips|١ پاکەتی بچووک چیپس
+Popcorn (air-popped)|24|3|cup|3 cups of popcorn|٣ پیاڵە پۆپکۆرن
+Ice cream (vanilla)|66|1|scoop|1 scoop of vanilla ice cream|١ گۆی بەستەنی
+Chocolate cake (frosted)|95|1|slice|1 slice of chocolate cake|١ پارچە کێکی شۆکۆلاتە
+Glazed donut|60|1|piece|1 glazed donut|١ دۆناتی شەکراوی
+Croissant|57|1|piece|1 croissant|١ کرواسان
+Gummy candy|40|1|handful|1 small handful of gummy candy|مشتێکی بچووک شیرینی ژێلی
+Water|250|1|glass|1 glass of water|١ جام ئاو
+Orange juice|248|1|glass|1 glass of orange juice|١ جام ئاوی پرتەقاڵ
+Apple juice|248|1|glass|1 glass of apple juice|١ جام ئاوی سێو
+Coffee (black)|240|1|cup|1 cup of black coffee|١ پیاڵە قاوەی ڕەش
+Tea (brewed)|240|1|cup|1 cup of tea|١ پیاڵە چا
+Cola|355|1|can|1 can of cola|١ قوتووی کۆلا
+Energy drink|250|1|can|1 can of energy drink|١ قوتووی خواردنەوەی وزەبەخش
+Sports drink|355|1|bottle|1 bottle of sports drink|١ بوتڵ خواردنەوەی وەرزشی
+Almond milk (unsweetened)|240|1|glass|1 glass of almond milk|١ جام شیری بادەم
+Pizza (cheese)|107|1|slice|1 slice of cheese pizza|١ پارچە پیتزای پەنیر
+Cheeseburger|119|1|piece|1 cheeseburger|١ چیزبەرگەر
+French fries|117|1|serving|1 medium serving of fries|١ ژەمی مامناوەندی پەتاتەی سوورکراوە
+Chicken shawarma wrap|250|1|piece|1 chicken shawarma wrap|١ شاورمای مریشک
+Falafel|51|3|piece|3 falafel balls|٣ دانە فەلافل
+Sushi roll|180|6|piece|6 sushi roll pieces|٦ دانە سوشی
+Beef taco|102|1|piece|1 beef taco|١ تاکۆی گۆشتی گا
+Chicken curry|240|1|bowl|1 bowl of chicken curry|١ کاسە کەری مریشک
+Chicken noodle soup|250|1|bowl|1 bowl of chicken noodle soup|١ کاسە شۆربای مریشک و نۆدڵ
+Garden salad|200|1|bowl|1 bowl of garden salad|١ کاسە زەڵاتەی تازە
+Fried chicken|110|1|piece|1 piece of fried chicken|١ پارچە مریشکی سوورکراوە
+Turkey sandwich|180|1|piece|1 turkey sandwich|١ ساندویچی مریشکی هیندی
+Dolma (rice-stuffed leaves)|120|3|piece|3 stuffed dolma pieces|٣ دانە دۆڵمە
+Chicken biryani|250|1|plate|1 plate of chicken biryani|١ قاپ بریانی مریشک
+Kubba (fried, stuffed)|90|1|piece|1 fried kubba|١ دانە کوبەی سوورکراوە
+Pacha (stewed sheep)|250|1|bowl|1 bowl of pacha|١ کاسە پاچە
+Samoon (Iraqi bread)|100|1|piece|1 samoon loaf|١ نانی سەمۆن
+Kurdish kebab (kofta)|90|1|piece|1 kebab skewer|١ شیشی کەبابی کوردی
+Labneh|30|2|tbsp|2 tablespoons of labneh|٢ کەوچکی گەورە لەبنە
+Doogh / ayran|250|1|glass|1 glass of doogh|١ جام دۆ
+Mujaddara (lentils & rice)|200|1|bowl|1 bowl of mujaddara|١ کاسە مجەدەرە
+Tahini|15|1|tbsp|1 tablespoon of tahini|١ کەوچکی گەورە تەحینە`;
+const CATS={F:['Fruits',140],V:['Vegetables',105],G:['Grains',38],M:['Meat',5],S:['Seafood',195],D:['Dairy',50],B:['Beans',25],N:['Nuts',30],K:['Snacks',320],R:['Drinks',210],P:['Meals',350],X:['Regional',170]};
+/* schema-driven parsing: add a nutrient = add a column name here and a value in the data */
+const COLS=['name','cat','e','kcal','protein','carbs','fat','fiber','sugar','water','na'],TXT=new Set(['name','cat','e']),MCOLS=['k','ca','fe','vc'];
+const MICRO=Object.fromEntries(MICRO_RAW.split('\n').map(l=>{const a=l.split('|');return[a[0],a.slice(1).map(Number)]}));
+const FOODS=RAW.split('\n').map((l,i)=>{const a=l.split('|'),f={id:i,est:'PX'.includes(a[1])},m=MICRO[a[0]];
+ COLS.forEach((c,j)=>f[c]=TXT.has(c)?a[j]:+a[j]);MCOLS.forEach((c,j)=>f[c]=m?m[j]:null);return f});
+const SERV=Object.fromEntries(SERV_RAW.split('\n').map(l=>{const a=l.split('|');return[a[0],{servingGrams:+a[1],servingAmount:+a[2],servingUnit:a[3],servingDescriptionEN:a[4],servingDescriptionKU:a[5]}]}));
+FOODS.forEach(f=>Object.assign(f,SERV[f.name]||(console.warn('no serving for',f.name),{servingGrams:100,servingAmount:1,servingUnit:'serving',servingDescriptionEN:'100 g',servingDescriptionKU:'١٠٠ گرام'})));
+const BYNAME=Object.fromEntries(FOODS.map(f=>[f.name,f.id]));
+const KU={"Apple": "سێو", "Banana": "مۆز", "Orange": "پرتەقاڵ", "Tangerine": "لالەنگی", "Lemon": "لیمۆ", "Grapes": "ترێ", "Strawberries": "فڕەولە", "Blueberries": "بلووبێری", "Raspberries": "تووتڕک", "Watermelon": "شوتی", "Melon (cantaloupe)": "کاڵەک", "Pineapple": "ئەنەناس", "Mango": "مانگۆ", "Papaya": "پاپایا", "Kiwi": "کیوی", "Peach": "قۆخ", "Pear": "هەرمێ", "Cherries": "گێلاس", "Pomegranate": "هەنار", "Fig (fresh)": "هەنجیری تازە", "Date (Medjool)": "خورمای مەجدول", "Avocado": "ئەڤۆکادۆ", "Coconut (raw meat)": "گوێزی هیندی (خاو)", "Raisins": "کشمیش", "Dried apricots": "زەردەلووی وشککراو", "Potato (raw)": "پەتاتە (خاو)", "Sweet potato (raw)": "پەتاتەی شیرین (خاو)", "Tomato": "تەماتە", "Cucumber": "خەیار", "Carrot": "گەزەر", "Onion": "پیاز", "Garlic": "سیر", "Spinach (raw)": "سپێناخ (خاو)", "Lettuce (romaine)": "کاهووی ڕۆمانی", "Broccoli (raw)": "بڕۆکۆلی (خاو)", "Cauliflower (raw)": "گوڵەکەلەم (خاو)", "Cabbage (raw)": "کەلەم (خاو)", "Eggplant (raw)": "باینجان (خاو)", "Zucchini": "کولەکە", "Bell pepper (red)": "بیبەری سووری شیرین", "Chili pepper": "بیبەری تیژ", "Green peas (raw)": "بازەلیای سەوز (خاو)", "Green beans": "فاسۆلیای سەوز", "Sweet corn": "گەنمەشامی شیرین", "Mushrooms": "کارگ", "Beetroot (raw)": "چەوەندەر (خاو)", "Pumpkin (raw)": "کودی (خاو)", "Kale (raw)": "کەلەرم (خاو)", "White rice (dry)": "برنجی سپی (وشک)", "White rice (cooked)": "برنجی سپی (لێنراو)", "Brown rice (cooked)": "برنجی قاوەیی (لێنراو)", "Basmati rice (cooked)": "برنجی باسمەتی (لێنراو)", "Oats (dry)": "شۆفان (وشک)", "Wheat flour": "ئاردی گەنم", "White bread": "نانی سپی", "Whole-wheat bread": "نانی گەنمی تەواو", "Pita bread": "نانی پیتا", "Pasta (dry)": "پاستا (وشک)", "Pasta (cooked)": "پاستا (لێنراو)", "Egg noodles (cooked)": "نۆدڵی هێلکە (لێنراو)", "Couscous (cooked)": "کوسکوس (لێنراو)", "Bulgur (cooked)": "ساوەر (لێنراو)", "Quinoa (cooked)": "کینوا (لێنراو)", "Barley (cooked)": "جۆ (لێنراو)", "Cornmeal": "ئاردی گەنمەشامی", "Chicken breast (cooked)": "سنگی مریشک (لێنراو)", "Chicken thigh (cooked)": "ڕانی مریشک (لێنراو)", "Whole chicken (roasted)": "مریشکی تەواو (برژاو)", "Beef (braised)": "گۆشتی گا (کوڵاو)", "Steak (sirloin, grilled)": "ستەیکی گا (گریلکراو)", "Ground beef 80/20 (cooked)": "گۆشتی کوتراوی گا (لێنراو)", "Lamb (roasted)": "گۆشتی بەرخ (برژاو)", "Turkey breast (roasted)": "سنگی مریشکی هیندی (برژاو)", "Duck (roasted, with skin)": "مراوی (برژاو، بە پێستەوە)", "Bacon (cooked)": "بەیکن (لێنراو)", "Salmon (cooked)": "ماسی سەلمۆن (لێنراو)", "Tuna (canned in water)": "تونا (قوتوو، لە ئاودا)", "Sardines (canned in oil)": "ساردین (قوتوو، لە ڕۆندا)", "Mackerel (cooked)": "ماسی ماکرێل (لێنراو)", "Cod (cooked)": "ماسی کۆد (لێنراو)", "Tilapia (cooked)": "ماسی تیلاپیا (لێنراو)", "Trout (cooked)": "ماسی ترۆت (لێنراو)", "Shrimp (cooked)": "میگۆ (لێنراو)", "Crab (cooked)": "قرژاڵ (لێنراو)", "Egg (raw)": "هێلکە (خاو)", "Egg (boiled)": "هێلکەی کوڵاو", "Egg white (raw)": "سپیەی هێلکە (خاو)", "Milk (whole)": "شیری تەواوچەوری", "Greek yogurt (plain, nonfat)": "ماستی یۆنانی (ساکار، بێچەوری)", "Yogurt (plain, whole milk)": "ماستی ساکار (تەواوچەوری)", "Cheddar cheese": "پەنیری چێدەر", "Mozzarella": "پەنیری مۆزەرێلا", "Feta cheese": "پەنیری فێتا", "Cottage cheese": "پەنیری کۆتیج", "Butter (salted)": "کەرەی خوێدار", "Heavy cream": "کرێمی چەور", "Lentils (cooked)": "نیسک (لێنراو)", "Chickpeas (cooked)": "نۆک (لێنراو)", "Kidney beans (cooked)": "فاسۆلیای سوور (لێنراو)", "Black beans (cooked)": "فاسۆلیای ڕەش (لێنراو)", "Soybeans (cooked)": "سۆیا (لێنراو)", "Tofu (firm)": "تۆفوی قایم", "Hummus": "حومس", "Almonds": "بادەم", "Walnuts": "گوێز", "Peanuts": "پاقلەی سودانی", "Pistachios": "فستق", "Cashews": "کاجو", "Hazelnuts": "فندق", "Sunflower seeds": "تۆوی گوڵەبەڕۆژە", "Pumpkin seeds": "تۆوی کودی", "Sesame seeds": "تۆوی کونجی", "Chia seeds": "تۆوی چیا", "Peanut butter": "کەرەی فستق عەبید", "Dark chocolate (70–85%)": "شۆکۆلاتەی ڕەش (٧٠–٨٥٪)", "Milk chocolate": "شۆکۆلاتەی شیری", "Chocolate chip cookies": "بسکویتی شۆکۆلاتە", "Potato chips": "چیپسی پەتاتە", "Popcorn (air-popped)": "پۆپکۆرن (بێ ڕۆن)", "Ice cream (vanilla)": "بەستەنی (ڤانیلا)", "Chocolate cake (frosted)": "کێکی شۆکۆلاتە (بە کرێمەوە)", "Glazed donut": "دۆناتی شەکراوی", "Croissant": "کرواسان", "Gummy candy": "شیرینی ژێلی", "Water": "ئاو", "Orange juice": "ئاوی پرتەقاڵ", "Apple juice": "ئاوی سێو", "Coffee (black)": "قاوەی ڕەش", "Tea (brewed)": "چا", "Cola": "کۆلا", "Energy drink": "خواردنەوەی وزەبەخش", "Sports drink": "خواردنەوەی وەرزشی", "Almond milk (unsweetened)": "شیری بادەم (بێ شەکر)", "Pizza (cheese)": "پیتزای پەنیر", "Cheeseburger": "چیزبەرگەر", "French fries": "پەتاتەی سوورکراوە", "Chicken shawarma wrap": "شاورمای مریشک", "Falafel": "فەلافل", "Sushi roll": "سوشی", "Beef taco": "تاکۆی گۆشتی گا", "Chicken curry": "کەری مریشک", "Chicken noodle soup": "شۆربای مریشک و نۆدڵ", "Garden salad": "زەڵاتەی تازە", "Fried chicken": "مریشکی سوورکراوە", "Turkey sandwich": "ساندویچی مریشکی هیندی", "Dolma (rice-stuffed leaves)": "دۆڵمە", "Chicken biryani": "بریانی مریشک", "Kubba (fried, stuffed)": "کوبەی سوورکراوە", "Pacha (stewed sheep)": "پاچە", "Samoon (Iraqi bread)": "نانی سەمۆن", "Kurdish kebab (kofta)": "کەبابی کوردی", "Labneh": "لەبنە", "Doogh / ayran": "دۆ", "Mujaddara (lentils & rice)": "مجەدەرە (نیسک و برنج)", "Tahini": "تەحینە"};
+const CK={"F": "میوە", "V": "سەوزە", "G": "دانەوێڵە", "M": "گۆشت", "S": "ماسی و دەریایی", "D": "شیرەمەنی", "B": "پاقلەمەنی", "N": "گوێز و تۆو", "K": "خواردنی سووک", "R": "خواردنەوە", "P": "ژەمەخواردن", "X": "خواردنی ناوچەیی"};
+const KM={"kcal": "کالۆری", "protein": "پرۆتین", "carbs": "کاربۆهیدرات", "fat": "چەوری", "fiber": "فایبەر", "sugar": "شەکر", "water": "ئاو", "na": "سۆدیۆم", "k": "پۆتاسیۆم", "ca": "کالسیۆم", "fe": "ئاسن", "vc": "ڤیتامین C"};
+FOODS.forEach(f=>{f.nameEn=f.name;f.nameKu=KU[f.name]||f.name});
+const MET=[['kcal','Calories','kcal',2000,'#ff9f5a'],['protein','Protein','g',50,'#7cf2c9'],['carbs','Carbs','g',275,'#6cb6ff'],['fat','Fat','g',78,'#ffd166'],['fiber','Fiber','g',28,'#a3e635'],['sugar','Sugar','g',50,'#ff7eb6'],['water','Water','g',100,'#5ad2f4'],['na','Sodium','mg',2300,'#b79cff'],['k','Potassium','mg',4700,'#c4b5fd'],['ca','Calcium','mg',1300,'#e5e7eb'],['fe','Iron','mg',18,'#f87171'],['vc','Vitamin C','mg',90,'#fbbf24']];
+const MX={};MET.forEach(m=>MX[m[0]]=Math.max(...FOODS.map(f=>f[m[0]])));
+const VH={kcal:25,protein:150,sugar:330,fiber:95};
+const barRow=(m,v,p)=>`<div class=bar><span>${mn(m)}</span><div class=tr><i data-w="${Math.min(100,p)}" style="background:${m[4]}"></i></div><span class=v>${fm(v)} ${un(m[2])} <small dir=ltr>${m[0]==='water'?'':Math.round(p)+'%'}</small></span></div>`;
+const $=s=>document.querySelector(s),fm=n=>n<10?(Math.round(n*10)/10).toString():Math.round(n).toString();
+const LS={get(k,d){try{return JSON.parse(localStorage.getItem(k))??d}catch{return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch{}}};
+/* ---------- i18n: to add a language, add its code to LANGS and one more entry to every I18N key ---------- */
+const LANGS=['en','ckb'],RTL=new Set(['ckb']);
+let lang=LS.get('ft.lang','en');if(!LANGS.includes(lang))lang='en';
+const I18N={
+title:['FOOD TABLE','خشتەی خۆراک'],title2:['Food Table','خشتەی خۆراک'],
+sub:['Explore what your food is made of.','بزانە خواردنەکەت چی تێدایە.'],
+ph:['Search: chicken, high protein, under 100 calories…','گەڕان: مریشک، پرۆتینی زۆر، کەمتر لە 100 کالۆری…'],sf:['Search foods','گەڕان بۆ خۆراک'],
+filters:['Filters','فلتەر'],cmp:['Compare','بەراورد'],meal:['Meal','ژەم'],grid:['▦ Grid','▦ تۆڕ'],list:['☰ List','☰ لیست'],gl:['Grid layout','شێوازی تۆڕ'],ll:['List layout','شێوازی لیست'],rs:['Reset','ڕێکخستنەوە'],clear:['Clear','پاککردنەوە'],
+note:['Nutrition values are approximate, per 100 g, and vary by variety, brand, preparation and cooking method. “Raw”, “cooked” and “canned” are labelled in names. Meals and regional dishes are estimated recipe averages. Micronutrients are listed for about 80 foods.','بەهای خۆراکییەکان نزیکەیین، بۆ هەر 100 گرام، و بەپێی جۆر، براند، ئامادەکردن و شێوازی لێنان جیاوازن. وشەکانی «خاو»، «لێنراو» و «قوتوو» لە ناوەکاندا دیاریکراون. ژەمەکان و خواردنە ناوچەییەکان تێکڕای ڕەسپیی ئەندازەکراون. ڤیتامین و کانزاکان بۆ نزیکەی 80 خۆراک دیاری کراون.'],
+all:['All','هەموو'],fav:['★ Favorites','★ دڵخوازەکان'],favl:['Favorite','دڵخواز'],sort:['Sort','ڕیزکردن'],view:['View','بینین'],disc:['Discover','دۆزینەوە'],cats:['Categories','پۆلەکان'],
+d_hp:['Highest protein','زۆرترین پرۆتین'],d_lc:['Lowest calories','کەمترین کالۆری'],d_mf:['Most fiber','زۆرترین فایبەر'],d_ms:['Most sugar','زۆرترین شەکر'],d_u100:['Under 100 kcal','کەمتر لە 100 کالۆری'],d_t10:['Top 10 protein','10 پرۆتینترین'],d_sur:['Surprising comparisons','بەراوردی سەیر'],d_rnd:['Random food','خۆراکی هەڕەمەکی'],
+cnt:['{0} of {1} foods','{0} لە {1} خۆراک'],e1:['No foods match “{0}”','هیچ خۆراکێک نەدۆزرایەوە بۆ «{0}»'],e2:['No foods match these filters','هیچ خۆراکێک لەگەڵ ئەم فلتەرانە ناگونجێت'],e3:['Try a broader search, or one of these:','گەڕانێکی فراوانتر تاقی بکەرەوە، یان یەکێک لەمانە:'],e4:['Reset filters','ڕێکخستنەوەی فلتەرەکان'],
+sug:['chicken|rice|low calorie|protein','مریشک|برنج|کالۆری کەم|پرۆتین'],
+u_kcal:['kcal','کالۆری'],u_g:['g','گ'],u_mg:['mg','ملگ'],per100:['per 100 g','بۆ هەر 100 گرام'],est:['estimated recipe','ڕەسپیی ئەندازەکراو'],est2:['estimated','ئەندازەکراو'],
+b_hp:['High protein','پرۆتینی زۆر'],b_lc:['Low calorie','کالۆری کەم'],b_hf:['High fiber','فایبەری زۆر'],b_hs:['High sugar','شەکری زۆر'],b_lb:['Low carb','کاربۆهیدراتی کەم'],b_hn:['High sodium','سۆدیۆمی زۆر'],b_pk:['Potassium-rich','پۆتاسیۆمی زۆر'],
+portion:['Portion','بڕی خواردن'],gram:['g','گرام'],typ:['Typical · {0} g','ئاسایی · {0} گ'],amtl:['Amount in grams','بڕ بە گرام'],pl:['Portion size in grams','قەبارەی بڕ بە گرام'],
+std:['Per 100 g · standard comparison','بۆ هەر 100 گرام · بەراوردی ستاندارد'],vsd:['Portion vs daily reference','بڕەکە بەرانبەر بە پێویستی ڕۆژانە'],
+incmp:['✓ In compare','✓ لە بەراوردە'],addcmp:['+ Compare','+ بەراورد'],addmeal:['+ Add to meal','+ زیادکردن بۆ ژەم'],added:['✓ Added','✓ زیادکرا'],
+nd:['Daily reference uses a typical 2000 kcal diet. Values are approximate and vary by variety, brand, preparation and cooking method.','پێویستی ڕۆژانە لەسەر بنەمای ڕێژیمێکی 2000 کالۆرییە. بەهاکان نزیکەیین و بەپێی جۆر، براند، ئامادەکردن و شێوازی لێنان جیاوازن.'],
+p100:['Per 100 g','بۆ هەر 100 گرام'],tsv:['Typical serving','بڕی ئاسایی'],hl:['▲ higher · ▼ lower','▲ زیاتر · ▼ کەمتر'],scl:['bars scaled to the highest','هێڵەکان بەپێی بەرزترین ڕێک خراون'],vs:['vs','بەرانبەر'],
+ncmp:['Approximate values; they vary by variety, brand, preparation and cooking method. “—” means no data for that food.','بەهاکان نزیکەیین و بەپێی جۆر، براند، ئامادەکردن و شێوازی لێنان جیاوازن. «—» واتە داتا بۆ ئەو خۆراکە نییە.'],
+max4:['Compare holds up to 4 foods','بەراورد تا 4 خۆراک هەڵدەگرێت'],tap:['Tap 2–4 foods to compare','دەست بدە لە 2 بۆ 4 خۆراک بۆ بەراوردکردن'],
+build:['Build a meal · today','ژەمێک دروست بکە · ئەمڕۆ'],addfood:['+ Add a food…','+ خۆراکێک زیاد بکە…'],plate:['Your plate is empty','قاپەکەت بەتاڵە'],today:['Today vs daily reference','ئەمڕۆ بەرانبەر بە پێویستی ڕۆژانە'],clr:['Clear today','پاککردنەوەی ئەمڕۆ'],
+nm:['Weights are in grams. Totals are approximate and saved on this device for today only. Micronutrient totals only include foods that have micronutrient data. Try 200 g chicken breast + 160 g cooked rice + 100 g broccoli.','بڕەکان بە گرامن. کۆی گشتی نزیکەییە و تەنها بۆ ئەمڕۆ لەسەر ئەم ئامێرە هەڵدەگیرێت. کۆی ڤیتامین و کانزاکان تەنها ئەو خۆراکانە دەگرێتەوە کە داتایان هەیە. نموونە: 200 گ سنگی مریشک + 160 گ برنجی لێنراو + 100 گ بڕۆکۆلی.'],
+sb:['Sorted by {0}','ڕیزکراوە بەپێی {0}'],uk:['Under {0} kcal','کەمتر لە {0} کالۆری'],top:['Top {0}','{0}ی سەرەوە'],rmf:['Remove filter','لابردنی فلتەر'],close:['Close','داخستن'],
+ab_P:['P','پ'],ab_C:['C','ک'],ab_F:['F','چ'],ab_Fi:['Fi','فا'],ab_Su:['Su','شە']};
+const $t=(k,...a)=>{const v=I18N[k]||[],s=v[LANGS.indexOf(lang)]??v[0]??k;return s.replace(/\{(\d)\}/g,(_,i)=>a[i])};
+const fn=f=>lang==='ckb'?f.nameKu:f.nameEn,cn=c=>lang==='ckb'?CK[c]:CATS[c][0],ml=k=>lang==='ckb'?KM[k]:MET.find(m=>m[0]===k)[1],mn=m=>ml(m[0]),un=u=>$t('u_'+u);
+const sdesc=f=>lang==='ckb'?f.servingDescriptionKU.replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)):f.servingDescriptionEN;
+function setLang(l){lang=l;LS.set('ft.lang',l);const h=document.documentElement;h.lang=l;h.dir=RTL.has(l)?'rtl':'ltr';document.title=$t('title2');
+ document.querySelectorAll('[data-i]').forEach(e=>e.textContent=$t(e.dataset.i));document.querySelectorAll('[data-ph]').forEach(e=>e.placeholder=$t(e.dataset.ph));document.querySelectorAll('[data-al]').forEach(e=>e.setAttribute('aria-label',$t(e.dataset.al)));
+ document.querySelectorAll('#lt [data-l]').forEach(b=>{b.classList.toggle('on',b.dataset.l===l);b.setAttribute('aria-pressed',b.dataset.l===l)});
+ if(ov.classList.contains('on'))closeOv();tip.style.opacity=0;tip.textContent='';draw();tray()}
+function toggleFav(f){S.fav.has(f.name)?S.fav.delete(f.name):S.fav.add(f.name);LS.set('ft.fav',[...S.fav])}
+let S={q:'',cat:'all',sk:null,sd:'desc',view:'none',lim:0,maxK:0,cmpMode:false,cmp:[],meal:[],cur:0,label:'',lay:innerWidth<640?'list':'grid',sur:-1,cu:'100g',amt:100,fav:new Set(LS.get('ft.fav',[]))};
+let list=[];
+/* daily tracker persistence: today's meal log, auto-resets on a new day */
+const day=()=>new Date().toLocaleDateString('en-CA');
+function saveDay(){LS.set('ft.day',{d:day(),m:S.meal.map(x=>[FOODS[x.id].name,x.g])})}
+(()=>{const s=LS.get('ft.day',null);if(s&&s.d===day())S.meal=s.m.filter(([n])=>n in BYNAME).map(([n,g])=>({id:BYNAME[n],g}));$('#mc').textContent=S.meal.length})();
+
+/* ---------- UI chrome ---------- */
+function chips(el,lab,items,on,fn){el.innerHTML=(lab?`<span class=lbl>${lab}</span>`:'')+items.map(([k,t])=>`<button class="chip${on(k)?' on':''}" data-k="${k}" aria-pressed="${!!on(k)}">${t}</button>`).join('');el.onclick=e=>{const b=e.target.closest('[data-k]');if(b)fn(b.dataset.k)}}
+function chrome(){
+ chips($('#cats'),'',[['all',$t('all')],['fav',$t('fav')],...Object.keys(CATS).map(k=>[k,cn(k)])],k=>S.cat===k,k=>{S.cat=k;S.lim=0;S.label='';draw()});
+ chips($('#sorts'),$t('sort'),MET.slice(0,6).map(m=>[m[0],mn(m)+(S.sk===m[0]?(S.sd==='desc'?' ↓':' ↑'):'')]),k=>S.sk===k,k=>{if(S.sk!==k){S.sk=k;S.sd='desc'}else if(S.sd==='desc')S.sd='asc';else S.sk=null;S.lim=0;S.label='';draw()});
+ chips($('#views'),$t('view'),[['none',$t('cats')],...['kcal','protein','sugar','fiber'].map(k=>[k,ml(k)])],k=>S.view===k,k=>{S.view=k;draw()});
+ chips($('#disc'),$t('disc'),['hp','lc','mf','ms','u100','t10','sur','rnd'].map(k=>[k,$t('d_'+k)]),()=>false,disc);
+}
+function reset(){S.q='';S.cat='all';S.sk=null;S.sd='desc';S.lim=0;S.maxK=0;S.label='';S.view='none';$('#q').value=''}
+function disc(k){
+ if(k==='rnd'){openDetail(Math.random()*FOODS.length|0);return}
+ if(k==='sur'){const P=[['Apple','Banana','Orange'],['Chicken breast','Beef (braised)','Salmon'],['Egg (raw)','Tofu','Lentils','Greek yogurt'],['Almonds','Avocado','Potato (raw)','Cola'],['White rice (dry)','White rice (cooked)'],['Date','Raisins','Grapes','Blueberries']];
+  const p=P[S.sur=(S.sur+1)%P.length];S.cmp=p.map(n=>FOODS.find(f=>f.name.startsWith(n))).filter(Boolean).map(f=>f.id);tray();openCmp();return}
+ reset();
+ const m={hp:['protein','desc'],lc:['kcal','asc'],mf:['fiber','desc'],ms:['sugar','desc'],u100:['kcal','desc'],t10:['protein','desc']}[k];
+ S.sk=m[0];S.sd=m[1];S.label=k;if(k==='u100')S.maxK=100;if(k==='t10')S.lim=10;
+ if(k==='hp'||k==='t10')S.view='protein';if(k==='lc'||k==='u100')S.view='kcal';if(k==='mf')S.view='fiber';if(k==='ms')S.view='sugar';
+ draw();scrollTo({top:0,behavior:'smooth'})}
+
+/* ---------- Search ---------- */
+const QR=[ /* [pattern, predicate, sort key, direction] — add a row to support a new phrase */
+ [/\blow[ -]?cal(orie)?s?\b/,f=>f.kcal<=60,'kcal','asc'],
+ [/\bprotein\b/,f=>f.protein>=15,'protein','desc'],
+ [/\bfib(er|re)\b/,f=>f.fiber>=6,'fiber','desc'],
+ [/\bsugar\b/,f=>f.sugar>=15,'sugar','desc'],
+ [/\bpotassium\b/,f=>f.k>=300,'k','desc'],
+ [/\bcalcium\b/,f=>f.ca>=100,'ca','desc'],
+ [/\biron\b/,f=>f.fe>=2,'fe','desc'],
+ [/\bvit(amin)?[ -]?c\b/,f=>f.vc>=30,'vc','desc']];
+const nz=s=>s.replace(/ي/g,'ی').replace(/ك/g,'ک').replace(/ى/g,'ی');
+const KT={'پرۆتین':'protein','فایبەر':'fiber','شەکر':'sugar','پۆتاسیۆم':'potassium','کالسیۆم':'calcium','ئاسن':'iron','ڤیتامین':'vitamin','سی':'c'},KF=new Set(['زۆر','بەرز','دەوڵەمەند','تێدا','خۆراک','خۆراکی','خۆراکەکان','لە','بە']);
+function parseQ(q){let r=nz(q.toLowerCase());const tests=[];let sk=null,sd=null;
+ r=r.replace(/کالۆری کەم|کەم کالۆری/g,'low calorie').split(/\s+/).map(w=>KT[w]||KT[w.replace(/ی$/,'')]||w).join(' ');
+ const mu=r.match(/(?:under|below|less than|<|کەمتر لە)\s*([\d٠-٩]+)\s*(?:k?cal\w*|کالۆری)?/);
+ if(mu){const n=+mu[1].replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d));r=r.replace(mu[0],' ');tests.push(f=>f.kcal<n);sk='kcal';sd='asc'}
+ QR.forEach(([re,t,k,d])=>{if(re.test(r)){r=r.replace(re,' ');tests.push(t);if(!sk){sk=k;sd=d}}});
+ return{tests,sk,sd,r:r.replace(/\b(high|rich|in|of|foods?|with|lots)\b/g,' ').split(/\s+/).filter(w=>w&&!KF.has(w)).join(' ')}}
+
+/* ---------- Grid ---------- */
+function filter(){
+ let L=FOODS.filter(f=>S.cat==='all'||(S.cat==='fav'?S.fav.has(f.name):f.cat===S.cat)),ks=S.sk,kd=S.sd;
+ if(S.q.trim()){const p=parseQ(S.q);p.tests.forEach(t=>L=L.filter(t));
+  if(p.r)L=L.filter(f=>(f.name+' '+CATS[f.cat][0]).toLowerCase().includes(p.r)||f.nameKu.includes(p.r)||CK[f.cat].includes(p.r));
+  if(!ks){ks=p.sk;kd=p.sd}}
+ if(S.maxK)L=L.filter(f=>f.kcal<S.maxK);
+ if(ks)L=[...L].sort((a,b)=>kd==='desc'?b[ks]-a[ks]:a[ks]-b[ks]);
+ return S.lim?L.slice(0,S.lim):L}
+function draw(light){
+ if(!light)chrome();list=filter();const g=$('#grid'),old={};
+ g.querySelectorAll('.t').forEach(e=>old[e.dataset.id]=e.getBoundingClientRect());
+ $('#cnt').textContent=(S.label?$t('d_'+S.label)+' · ':'')+$t('cnt',list.length,FOODS.length);activeChips();
+ if(!list.length){g.className=S.lay;g.innerHTML=`<div class=empty style="grid-column:1/-1"><big>🍽️</big><h3>${S.q.trim()?$t('e1',S.q.trim()):$t('e2')}</h3><p>${$t('e3')}</p><div class=sug>${$t('sug').split('|').map(s=>`<button class=chip onclick="setQ('${s}')">${s}</button>`).join('')}</div><button class=btn onclick="reset();draw()">${$t('e4')}</button></div>`;return}
+ const v=S.view,vk=v==='none'?null:v;
+ g.className=S.lay;g.innerHTML=list.map((f,i)=>{if(S.lay==='list')return rowHTML(f);const h=vk?Math.sqrt(f[vk]/MX[vk]):0;
+  const lk=v==='sugar'||v==='fiber'?v:'protein',l2=fm(f[lk])+$t('u_g')+' '+ml(lk).toLowerCase();
+  return `<button class="t${S.cmp.includes(f.id)?' sel':''}${S.fav.has(f.name)?' fv':''}" data-id="${f.id}" aria-label="${fn(f)}, ${f.kcal} ${$t('u_kcal')} ${$t('per100')}" style="--h:${CATS[f.cat][1]};--vh:${vk?VH[vk]:0}">${vk?`<i class=f style="height:${h*100}%"></i>`:''}<span class=n>${i+1}</span><b>${f.e}</b><em>${fn(f)}</em><span>${f.kcal} ${$t('u_kcal')}/100${$t('u_g')}</span><small>${l2}</small></button>`}).join('');
+ g.querySelectorAll('.t').forEach(e=>{const o=old[e.dataset.id];if(o){const n=e.getBoundingClientRect(),dx=o.left-n.left,dy=o.top-n.top;if(dx||dy)e.animate([{transform:`translate(${dx}px,${dy}px)`},{transform:'none'}],{duration:550,easing:'cubic-bezier(.2,.8,.2,1)'})}else e.animate([{opacity:0,transform:'scale(.85)'},{opacity:1,transform:'none'}],{duration:350})});
+}
+$('#grid').addEventListener('click',e=>{const t=e.target.closest('.t');if(!t)return;const id=+t.dataset.id;if(S.cmpMode)toggleCmp(id);else openDetail(id)});
+const tip=$('#tip');
+$('#grid').addEventListener('mouseover',e=>{const t=e.target.closest('.t');if(!t)return;const f=FOODS[+t.dataset.id];tip.innerHTML=`<b>${f.e} ${fn(f)}</b> <span style="color:var(--mu)">${$t('per100')}</span><br>${f.kcal} ${$t('u_kcal')} · ${ml('protein')} ${fm(f.protein)} · ${ml('carbs')} ${fm(f.carbs)} · ${ml('fat')} ${fm(f.fat)}<br>${ml('fiber')} ${fm(f.fiber)} · ${ml('sugar')} ${fm(f.sugar)}`;tip.style.opacity=1});
+$('#grid').addEventListener('mousemove',e=>{tip.style.left=Math.min(e.clientX+14,innerWidth-230)+'px';tip.style.top=(e.clientY+16)+'px'});
+$('#grid').addEventListener('mouseout',()=>tip.style.opacity=0);
+let qf=0;$('#q').addEventListener('input',e=>{S.q=e.target.value;S.lim=0;S.label='';cancelAnimationFrame(qf);qf=requestAnimationFrame(()=>draw(1))});
+$('#rs').onclick=()=>{reset();draw()};
+addEventListener('keydown',e=>{if(e.key==='/'&&document.activeElement.tagName!=='INPUT'&&document.activeElement.tagName!=='SELECT'){e.preventDefault();$('#q').focus()}if(e.key==='Escape')closeOv()});
+
+/* ---------- Overlay ---------- */
+const ov=$('#ov'),sh=$('#sh');
+let lastF;function openOv(wide){if(!ov.classList.contains('on')){lastF=document.activeElement;ov.classList.add('on');ov.setAttribute('aria-hidden','false');sh.focus({preventScroll:true})}sh.className='sheet'+(wide?' wide':'')}
+function closeOv(){ov.classList.remove('on');ov.setAttribute('aria-hidden','true');if(lastF&&lastF.focus)lastF.focus({preventScroll:true})}
+ov.addEventListener('click',e=>{if(e.target===ov||e.target.closest('.x'))closeOv()});
+function bars(){requestAnimationFrame(()=>requestAnimationFrame(()=>sh.querySelectorAll('[data-w]').forEach(e=>e.style.width=e.dataset.w+'%')))}
+function openDetail(id){S.cur=id;S.amt=100;drawDetail();openOv()}
+const kn=x=>String(x).replace(/\d/g,d=>'٠١٢٣٤٥٦٧٨٩'[d]);
+const TL=[['kcal','kcal'],['protein','protein'],['carbs','carbs'],['fat','fat'],['fiber','fiber']];
+const tiles=(f,k)=>`<div class=tot>${TL.map(([a,b])=>`<div><b>${a==='kcal'?Math.round(f.kcal*k):fm(f[a]*k)+$t('u_g')}</b><small>${a==='kcal'?$t('u_kcal'):ml(a).toLowerCase()}</small></div>`).join('')}</div>`;
+function drawDetail(){
+ const f=FOODS[S.cur],k=S.amt/100,C=2*Math.PI*38;
+ const en=[f.protein*4,f.carbs*4,f.fat*9],tot=en.reduce((a,b)=>a+b,0)||1,col=['#7cf2c9','#6cb6ff','#ffd166'];let off=0;
+ const ring=en.map((x,i)=>{const d=x/tot*C,s=`<circle r=38 cx=50 cy=50 fill=none stroke="${col[i]}" stroke-width=10 stroke-dasharray="${d} ${C-d}" stroke-dashoffset="${-off}" transform="rotate(-90 50 50)"/>`;off+=d;return s}).join('');
+ sh.innerHTML=`<div class=hd><span class=em>${f.e}</span><div><h2>${fn(f)}</h2><span class=tag style="color:hsl(${CATS[f.cat][1]} 70% 70%)">${cn(f.cat)}</span>${f.est?`<span class=tag>${$t('est')}</span>`:''}${badges(f)}</div><button class=x>×</button></div>
+ <div class="sv pt"><div class=svh><span>${$t('portion')}</span></div>
+ <div class=pg><input id=pg type=number min=1 max=1000 inputmode=numeric value=${S.amt} aria-label="${$t('amtl')}"><span>${$t('gram')}</span></div>
+ <input id=pr type=range min=5 max=500 step=5 value=${Math.min(S.amt,500)} aria-label="${$t('pl')}">
+ <div class=pc>${[50,100,150,200,f.servingGrams].map((g,i)=>`<button class="chip${g===S.amt?' on':''}" data-g=${g}>${i<4?g+' '+$t('u_g'):$t('typ',g)}</button>`).join('')}</div>
+ <div class=mid><svg width=72 height=72 viewBox="0 0 100 100"><circle r=38 cx=50 cy=50 fill=none stroke="rgba(255,255,255,.07)" stroke-width=10 />${ring}</svg><div><div class=svn>${sdesc(f)} <small>(~${f.servingGrams} ${$t('u_g')})</small></div><div class=leg style="margin-top:5px"><i style="background:${col[0]}"></i>${ml('protein').toLowerCase()} <i style="background:${col[1]};margin-inline-start:6px"></i>${ml('carbs').toLowerCase()} <i style="background:${col[2]};margin-inline-start:6px"></i>${ml('fat').toLowerCase()}</div></div></div>
+ <div id=pt>${tiles(f,k)}</div></div>
+ <div class="sv h100" id=h1${S.amt===100?' hidden':''}><div class=svh><span>${$t('std')}</span></div>${tiles(f,1)}</div>
+ <details><summary class=cm>${$t('vsd')} ▾</summary><div id=rb>${refBars(f,k)}</div></details>
+ <div class=acts><button class=btn id=af style="flex:0 0 44px" aria-label="${$t('favl')}">${S.fav.has(f.name)?'★':'☆'}</button><button class=btn id=ac>${S.cmp.includes(f.id)?$t('incmp'):$t('addcmp')}</button><button class="btn on" id=am>${$t('addmeal')}</button></div>
+ <p class=note>${$t('nd')}</p>`;
+ $('#ac').onclick=()=>{toggleCmp(f.id);drawDetail()};
+ $('#af').onclick=()=>{toggleFav(f);drawDetail();const t=document.querySelector(`.t[data-id="${f.id}"]`);if(t)t.classList.toggle('fv',S.fav.has(f.name))};
+ $('#am').onclick=()=>{addMeal(f.id,S.amt);$('#am').textContent=$t('added');};
+ sh.querySelector('details').ontoggle=bars;bars();
+ $('#pr').oninput=e=>setAmt(e.target.value,'pr');$('#pg').oninput=e=>setAmt(e.target.value,'pg');
+ sh.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>setAmt(b.dataset.g))}
+const refBars=(f,k)=>MET.map(m=>f[m[0]]==null?'':barRow(m,f[m[0]]*k,m[0]==='water'?f.water:f[m[0]]*k/m[3]*100)).join('');
+function setAmt(g,src){g=Math.round(+g);if(!(g>0))return;g=Math.min(1000,g);S.amt=g;const f=FOODS[S.cur],k=g/100;
+ if(src!=='pg')$('#pg').value=g;if(src!=='pr')$('#pr').value=Math.min(g,500);
+ $('#pt').innerHTML=tiles(f,k);$('#h1').hidden=g===100;
+ const rb=$('#rb');rb.innerHTML=refBars(f,k);rb.querySelectorAll('[data-w]').forEach(e=>{e.style.transition='none';e.style.width=e.dataset.w+'%'});
+ sh.querySelectorAll('[data-g]').forEach(b=>b.classList.toggle('on',+b.dataset.g===g))}
+
+/* ---------- Compare ---------- */
+function toggleCmp(id){const i=S.cmp.indexOf(id);if(i>=0)S.cmp.splice(i,1);else if(S.cmp.length<4)S.cmp.push(id);else{$('#cnt').textContent=$t('max4')}tray()}
+function tray(){const t=$('#tray');t.classList.toggle('on',S.cmp.length>0||S.cmpMode);$('#tch').innerHTML=S.cmp.length?S.cmp.map(i=>`<span class=pill data-r="${i}">${FOODS[i].e} ${fn(FOODS[i])} ×</span>`).join(''):`<span style="color:var(--mu)">${$t('tap')}</span>`;$('#tgo').disabled=S.cmp.length<2;$('#tgo').style.opacity=S.cmp.length<2?.4:1;document.querySelectorAll('.t').forEach(e=>e.classList.toggle('sel',S.cmp.includes(+e.dataset.id)))}
+$('#tch').onclick=e=>{const p=e.target.closest('[data-r]');if(p)toggleCmp(+p.dataset.r)};
+$('#tclr').onclick=()=>{S.cmp=[];S.cmpMode=false;$('#bc').classList.remove('on');tray()};
+$('#tgo').onclick=openCmp;
+$('#bc').onclick=()=>{S.cmpMode=!S.cmpMode;$('#bc').classList.toggle('on',S.cmpMode);tray()};
+const PAL=['#7cf2c9','#6cb6ff','#ffd166','#ff7eb6'];
+function openCmp(){if(S.cmp.length<2)return;const fs=S.cmp.map(i=>FOODS[i]),sv=S.cu==='serving',K=f=>sv?f.servingGrams/100:1,two=fs.length===2,nm=f=>fn(f).split(' (')[0];
+ const rows=[...MET.slice(0,7),...MET.slice(8).filter(m=>fs.some(f=>f[m[0]]!=null))];
+ const val=(f,m)=>f[m[0]]==null?null:f[m[0]]*K(f),txt=(v,m)=>v==null?'—':fm(v)+(m[2]==='kcal'?'':' '+un(m[2]));
+ const rank=(vs,i)=>{if(vs.includes(null))return'';const hi=Math.max(...vs),lo=Math.min(...vs);return hi===lo?'':vs[i]===hi?'hi':vs[i]===lo?'lo':''};
+ const mk=r=>r==='hi'?'<i>▲</i>':r==='lo'?'<i>▼</i>':'';
+ const head=two?`<div class=c2h>${[0,1].map(i=>`<span>${fs[i].e} ${nm(fs[i])}</span>`).join('<span></span>')}</div>`:'';
+ const body=two?rows.map(m=>{const vs=fs.map(f=>val(f,m)),r=i=>rank(vs,i);return `<div class=c2><span class="c2v ${r(0)}">${mk(r(0))}${txt(vs[0],m)}</span><span class=c2l>${mn(m)}</span><span class="c2v ${r(1)}">${txt(vs[1],m)}${mk(r(1))}</span></div>`}).join('')
+ :rows.map(m=>{const vs=fs.map(f=>val(f,m)),mx=Math.max(...vs.map(v=>v||0),.001);return `<div class=cm>${mn(m)}</div>`+fs.map((f,i)=>{const r=rank(vs,i);return `<div class=cb><span>${f.e} ${nm(f)}</span><div class=bar style="display:block;margin:0"><div class=tr><i data-w="${(vs[i]||0)/mx*100}" style="background:${PAL[i]};opacity:${r!=='lo'?1:.65}"></i></div></div><span class="v ${r}" style="text-align:end">${txt(vs[i],m)}${mk(r)}</span></div>`}).join('')}).join('');
+ sh.innerHTML=`<div class=hd><h2>${fs.map(f=>f.e+' '+nm(f)).join(' '+$t('vs')+' ')}</h2><button class=x>×</button></div>
+ <div class=seg>${[['100g',$t('p100')],['serving',$t('tsv')]].map(([a,b])=>`<button class="chip${S.cu===a?' on':''}" data-cu="${a}">${b}</button>`).join('')}</div>
+ <div class=leg>${sv?fs.map(f=>`${f.e} ${sdesc(f)} (${f.servingGrams} ${$t('u_g')})`).join(' · '):$t('p100')} · ${$t('hl')}${two?'':' · '+$t('scl')}</div>${head}${body}
+ <p class=note>${$t('ncmp')}</p>`;
+ sh.querySelectorAll('[data-cu]').forEach(b=>b.onclick=()=>{S.cu=b.dataset.cu;openCmp()});
+ openOv(true);bars()}
+
+/* ---------- Meal builder / daily tracker ---------- */
+function addMeal(id,g){const m=S.meal.find(x=>x.id===id);if(m)m.g+=g;else S.meal.push({id,g});$('#mc').textContent=S.meal.length;saveDay()}
+$('#bm').onclick=openMeal;
+function openMeal(){
+ saveDay();const T=Object.fromEntries(MET.map(m=>[m[0],0]));S.meal.forEach(x=>{const f=FOODS[x.id];for(const k in T)T[k]+=(f[k]||0)*x.g/100});
+ const e=[T.protein*4,T.carbs*4,T.fat*9],et=e.reduce((a,b)=>a+b,0)||1;
+ sh.innerHTML=`<div class=hd><h2>${$t('build')}</h2><button class=x>×</button></div>
+ <select id=ms><option value="">${$t('addfood')}</option>${Object.entries(CATS).map(([c,v])=>`<optgroup label="${cn(c)}">${FOODS.filter(f=>f.cat===c).map(f=>`<option value=${f.id}>${f.e} ${fn(f)}</option>`).join('')}</optgroup>`).join('')}</select>
+ <div class=plate>${S.meal.length?S.meal.map(x=>`<span style="font-size:${24+Math.sqrt(x.g)*1.6}px">${FOODS[x.id].e}</span>`).join(''):'<span style="color:var(--mu);font-size:12px;animation:none">'+$t('plate')+'</span>'}</div>
+ ${S.meal.map((x,i)=>`<div class=mr><span style="font-size:22px">${FOODS[x.id].e}</span><span>${fn(FOODS[x.id])}</span><input type=number min=0 inputmode=numeric value=${x.g} data-i=${i}><button class=x style="margin:0" data-d=${i}>×</button></div>`).join('')}
+ <div class=seg2>${e.map((v,i)=>`<i style="width:${v/et*100}%;background:${['#7cf2c9','#6cb6ff','#ffd166'][i]}"></i>`).join('')}</div>
+ <div class=tot><div><b>${Math.round(T.kcal)}</b><small>${$t('u_kcal')}</small></div>${['protein','carbs','fat','fiber'].map(k=>`<div><b>${fm(T[k])}${$t('u_g')}</b><small>${ml(k).toLowerCase()}</small></div>`).join('')}</div>
+ ${S.meal.length?`<div class=cm>${$t('today')}</div>`+MET.filter(m=>m[0]!=='water').map(m=>barRow(m,T[m[0]],T[m[0]]/m[3]*100)).join('')+`<div class=acts><button class=btn id=mx>${$t('clr')}</button></div>`:''}
+ <p class=note>${$t('nm')}</p>`;
+ $('#ms').onchange=ev=>{if(ev.target.value){addMeal(+ev.target.value,100);openMeal()}};
+ sh.querySelectorAll('input[data-i]').forEach(inp=>inp.onchange=()=>{S.meal[+inp.dataset.i].g=Math.max(0,+inp.value||0);openMeal()});
+ sh.querySelectorAll('[data-d]').forEach(b=>b.onclick=ev=>{ev.stopPropagation();S.meal.splice(+b.dataset.d,1);$('#mc').textContent=S.meal.length;openMeal()});
+ if($('#mx'))$('#mx').onclick=()=>{S.meal=[];$('#mc').textContent=0;openMeal()};
+ openOv();bars()}
+function rowHTML(f){const x=['fiber','sugar'].includes(S.sk)?S.sk:['fiber','sugar'].includes(S.view)?S.view:'fat',M=[['protein','P','#7cf2c9'],['carbs','C','#6cb6ff'],x==='fat'?['fat','F','#ffd166']:[x,x==='fiber'?'Fi':'Su',x==='fiber'?'#a3e635':'#ff7eb6']];
+ return `<button class="t r${S.cmp.includes(f.id)?' sel':''}${S.fav.has(f.name)?' fv':''}" data-id="${f.id}" aria-label="${fn(f)}, ${f.kcal} ${$t('u_kcal')} ${$t('per100')}" style="--h:${CATS[f.cat][1]}"><b>${f.e}</b><span class=nm><em>${fn(f)}</em><small>${cn(f.cat)}${f.est?' · '+$t('est2'):''}</small></span><span class=kc>${f.kcal}<small>${$t('u_kcal')}/100${$t('u_g')}</small></span>${M.map(([k,l,c],j)=>`<span class="mc${j?' o':''}"><i style="--w:${Math.min(100,Math.sqrt(f[k]/MX[k])*100)}%;--c:${c}"></i>${fm(f[k])}<small>${$t('ab_'+l)}</small></span>`).join('')}</button>`}
+function setQ(s){reset();S.q=s;$('#q').value=s;draw()}
+function badges(f){const b=[];if(f.protein>=20)b.push([$t('b_hp'),'#7cf2c9']);if(f.kcal&&f.kcal<=60)b.push([$t('b_lc'),'#a3e635']);if(f.fiber>=6)b.push([$t('b_hf'),'#a3e635']);if(f.sugar>=15)b.push([$t('b_hs'),'#ff7eb6']);if(f.carbs<=5&&f.kcal>40)b.push([$t('b_lb'),'#6cb6ff']);if(f.na>=500)b.push([$t('b_hn'),'#b79cff']);if(f.k>=500)b.push([$t('b_pk'),'#c4b5fd']);return b.map(([t,c])=>`<span class=tag style="color:${c};border-color:${c}55">${t}</span>`).join('')}
+function activeChips(){const a=[];if(S.q.trim())a.push(['q','“'+S.q.trim()+'”']);if(S.cat!=='all')a.push(['cat',S.cat==='fav'?$t('fav'):cn(S.cat)]);if(S.sk)a.push(['sk',$t('sb',mn(MET.find(m=>m[0]===S.sk)))+(S.sd==='desc'?' ↓':' ↑')]);if(S.maxK)a.push(['mk',$t('uk',S.maxK)]);if(S.lim)a.push(['lim',$t('top',S.lim)]);
+ $('#act').innerHTML=a.map(([k,x])=>`<button class=pill data-x="${k}" aria-label="${$t('rmf')}: ${x}">${x} ×</button>`).join('');$('#rs').hidden=!a.length&&S.view==='none';
+ [['#lg','grid'],['#ll','list']].forEach(([s,l])=>{$(s).classList.toggle('on',S.lay===l);$(s).setAttribute('aria-pressed',S.lay===l)})}
+$('#act').onclick=e=>{const b=e.target.closest('[data-x]');if(!b)return;const k=b.dataset.x;if(k==='q'){S.q='';$('#q').value=''}if(k==='cat')S.cat='all';if(k==='sk'){S.sk=null;S.label=''}if(k==='mk')S.maxK=0;if(k==='lim')S.lim=0;draw()};
+$('#lg').onclick=()=>{S.lay='grid';draw()};$('#ll').onclick=()=>{S.lay='list';draw()};
+$('#bf').onclick=()=>{const o=$('#more').classList.toggle('open');$('#bf').setAttribute('aria-expanded',o);$('#bf').classList.toggle('on',o)};
+new MutationObserver(()=>sh.querySelectorAll('.x:not([aria-label])').forEach(b=>b.setAttribute('aria-label',$t('close')))).observe(sh,{childList:true});
+addEventListener('keydown',e=>{if(e.key!=='Tab'||!ov.classList.contains('on'))return;const f=[...sh.querySelectorAll('button:not([disabled]),select,input')];if(!f.length)return;const a=f[0],z=f[f.length-1],c=document.activeElement;if(e.shiftKey&&(c===a||c===sh)){e.preventDefault();z.focus()}else if(!e.shiftKey&&c===z){e.preventDefault();a.focus()}});
+$('#lt').onclick=e=>{const b=e.target.closest('[data-l]');if(b&&b.dataset.l!==lang)setLang(b.dataset.l)};
+setLang(lang);
+</script></body></html>
